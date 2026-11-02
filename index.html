@@ -1,0 +1,2985 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoopMaster Studio Pro - Seamless Video Loop Creator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0b0f19',
+                        panelBg: '#151c2c',
+                        panelHeader: '#1e293b',
+                        primary: '#3b82f6',
+                        primaryHover: '#2563eb',
+                        accent: '#8b5cf6'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;800&family=Playfair+Display:ital,wght@0,600;1,400&family=Roboto+Mono:wght@500&family=Pacifico&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0b0f19; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 14px;
+            width: 14px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            margin-top: -5px;
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+            transition: transform 0.1s ease;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #334155;
+            border-radius: 2px;
+        }
+        
+        .tab-btn.active {
+            border-bottom-color: #3b82f6;
+            color: #60a5fa;
+            background-color: rgba(30, 41, 59, 0.4);
+        }
+
+        option {
+            background-color: #0f172a;
+            color: #f1f5f9;
+        }
+
+        .file-drop-active {
+            border-color: #3b82f6;
+            background-color: rgba(30, 41, 59, 0.6);
+        }
+    </style>
+</head>
+<body class="bg-darkBg text-gray-100 min-h-screen flex flex-col justify-between overflow-x-hidden select-none">
+
+    <header class="bg-panelHeader border-b border-gray-800 py-3 px-6 shadow-lg flex justify-between items-center z-10 shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-purple-600 flex items-center justify-center text-lg shadow-lg shadow-blue-500/20">
+                <i class="fa-solid fa-infinity text-white"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400">LoopMaster Studio Pro</h1>
+                <p class="text-[11px] text-gray-400">Seamless Video & Audio Spectrum Synthesizer</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-xs px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span> Ready
+            </span>
+        </div>
+    </header>
+
+    <main class="flex-1 flex flex-col lg:flex-row lg:items-start p-3 gap-3 h-[calc(100vh-65px)] overflow-hidden lg:h-auto lg:min-h-[calc(100vh-65px)] lg:overflow-visible">
+        
+        <!-- Left Panel: Canvas Preview & Playback Controls -->
+        <section class="flex-1 flex flex-col bg-panelBg rounded-xl border border-gray-800 shadow-2xl overflow-hidden relative h-full lg:sticky lg:top-3 lg:h-[calc(100vh-89px)] lg:self-start">
+            
+            <!-- Canvas Container -->
+            <div class="flex-1 bg-black/90 relative flex items-center justify-center overflow-hidden p-2 min-h-0" id="canvas-container">
+                <canvas id="main-canvas" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl transition-all duration-300 cursor-grab active:cursor-grabbing touch-none"></canvas>
+                
+                <!-- Initial Status Overlay -->
+                <div id="status-overlay" class="absolute inset-0 bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center z-20 transition-opacity duration-300 p-6 text-center pointer-events-none">
+                    <div class="w-16 h-16 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-4 text-blue-400 text-2xl">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </div>
+                    <h2 class="text-lg font-bold text-gray-200 mb-1">Mulai Membuat Loop Video</h2>
+                    <p class="text-xs text-gray-400 max-w-sm">Unggah audio untuk mulai. Gambar atau video background bisa ditambahkan kapan saja.</p>
+                </div>
+
+            </div>
+
+            <div class="bg-slate-900 p-3 border-t border-gray-800 flex flex-col gap-2 shrink-0">
+                <div class="flex flex-wrap items-center gap-3">
+                    <!-- Play/Pause Button -->
+                    <button id="btn-play" title="Play / Pause" class="w-10 h-10 rounded-lg bg-primary hover:bg-primaryHover flex items-center justify-center transition-all text-white shadow-md shadow-blue-500/20 active:scale-95">
+                        <i class="fa-solid fa-play text-sm ml-0.5"></i>
+                    </button>
+
+                    <!-- Stop Button -->
+                    <button id="btn-stop" title="Stop Playback" class="w-9 h-9 rounded-lg bg-slate-800 text-red-400 hover:bg-red-500/20 hover:text-red-300 flex items-center justify-center transition-colors border border-gray-700 active:scale-95">
+                        <i class="fa-solid fa-stop text-xs"></i>
+                    </button>
+                    
+                    <!-- Loop Toggle Indicator Button -->
+                    <button id="btn-loop" title="Toggle Loop Audio" class="h-9 px-3 rounded-lg bg-slate-800 text-gray-400 hover:bg-slate-700 flex items-center gap-1.5 transition-all border border-gray-700 active:scale-95">
+                        <i class="fa-solid fa-repeat text-xs"></i>
+                        <span id="loop-status-text" class="text-[10px] font-bold uppercase tracking-wider">Loop OFF</span>
+                    </button>
+
+                    <!-- Volume & Mute Controls -->
+                    <div class="flex items-center gap-2 bg-slate-800/80 px-2.5 py-1.5 rounded-lg border border-gray-800">
+                        <button id="btn-mute" title="Mute / Unmute" class="text-gray-400 hover:text-white transition-colors w-5">
+                            <i class="fa-solid fa-volume-high text-xs"></i>
+                        </button>
+                        <input type="range" id="vol-control" min="0" max="1" step="0.01" value="1" class="w-20 accent-blue-500">
+                    </div>
+                    
+                    <!-- Seek Bar -->
+                    <div class="flex-1 min-w-[150px] flex items-center gap-2">
+                        <span id="time-current" class="text-[11px] font-mono text-gray-400 w-10 text-right">00:00</span>
+                        <input type="range" id="seek-bar" value="0" min="0" max="100" step="0.1" class="flex-1">
+                        <span id="time-total" class="text-[11px] font-mono text-gray-400 w-10">00:00</span>
+                    </div>
+
+                    <!-- Loudness Level VU Monitor -->
+                    <div class="hidden sm:flex items-center gap-2 bg-slate-950 px-2.5 py-1.5 rounded-lg border border-gray-800 shrink-0">
+                        <div class="flex flex-col items-end">
+                            <span class="text-[9px] uppercase tracking-wider text-gray-400 font-bold">Loudness</span>
+                            <span id="val-loudness-db" class="text-[10px] font-mono text-emerald-400 font-semibold">-inf dB</span>
+                        </div>
+                        <div class="w-16 h-3 bg-slate-800 rounded-sm overflow-hidden flex items-center p-0.5 border border-slate-700">
+                            <div id="loudness-meter-bar" class="h-full bg-gradient-to-r from-emerald-500 via-yellow-400 to-red-500 w-0 transition-all duration-75 rounded-xs"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="w-full lg:w-[450px] flex flex-col bg-panelBg rounded-xl border border-gray-800 shadow-2xl overflow-hidden h-full lg:h-auto">
+            
+            <!-- Tabs Header -->
+            <div class="grid grid-cols-6 border-b border-gray-800 bg-slate-900/90 text-center text-[11px] shrink-0">
+                <button class="tab-btn active py-3 border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition-all font-medium flex flex-col items-center gap-1" data-target="tab-input">
+                    <i class="fa-solid fa-folder-open text-xs"></i> Input
+                </button>
+                <button class="tab-btn py-3 border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition-all font-medium flex flex-col items-center gap-1" data-target="tab-audio">
+                    <i class="fa-solid fa-sliders text-xs"></i> Audio
+                </button>
+                <button class="tab-btn py-3 border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition-all font-medium flex flex-col items-center gap-1" data-target="tab-spectrum">
+                    <i class="fa-solid fa-wave-square text-xs"></i> Spektrum
+                </button>
+                <button class="tab-btn py-3 border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition-all font-medium flex flex-col items-center gap-1" data-target="tab-overlay">
+                    <i class="fa-solid fa-layer-group text-xs"></i> Overlay
+                </button>
+                <button class="tab-btn py-3 border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition-all font-medium flex flex-col items-center gap-1" data-target="tab-lyrics">
+                    <i class="fa-solid fa-closed-captioning text-xs"></i> Lirik
+                </button>
+                <button class="tab-btn py-3 border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition-all font-medium flex flex-col items-center gap-1" data-target="tab-export">
+                    <i class="fa-solid fa-film text-xs"></i> Ekspor
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-4 relative space-y-4 lg:flex-none lg:overflow-visible">
+                
+                <!-- TAB 1: INPUT & BACKGROUND -->
+                <div id="tab-input" class="tab-content active space-y-5">
+                    <div class="space-y-2">
+                        <label class="block text-xs font-semibold text-gray-300 uppercase tracking-wider">Gambar / Video Background</label>
+                        <div class="relative border border-dashed border-gray-700 hover:border-blue-500 rounded-xl p-4 text-center hover:bg-slate-800/40 transition-all cursor-pointer group" onclick="document.getElementById('input-bg').click()">
+                            <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-500 group-hover:text-blue-400 transition-colors mb-2"></i>
+                            <p class="text-xs text-gray-300 font-medium" id="bg-filename">Klik memilih Gambar atau Video (PNG, JPG, WebP, MP4, MOV)</p>
+                            <input type="file" id="input-bg" accept="image/*,video/*,.mov" class="hidden">
+                        </div>
+                        <button type="button" id="btn-clear-bg" disabled class="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-xs text-gray-300 hover:bg-red-500/20 hover:text-red-300 transition-colors flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
+                            <i class="fa-solid fa-trash-can"></i> Bersihkan Background
+                        </button>
+                    </div>
+
+                    <!-- Background Image Controls -->
+                    <div class="bg-slate-900/80 p-3.5 rounded-xl border border-gray-800 space-y-3">
+                        <h4 class="text-xs font-bold text-gray-300 flex items-center gap-2">
+                            <i class="fa-solid fa-up-right-and-down-left-from-center text-blue-400"></i> Kontrol Background
+                        </h4>
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Skala / Zoom Background</span>
+                                <span id="val-bg-scale" class="text-blue-400 font-mono">1.00x</span>
+                            </div>
+                            <input type="range" id="bg-scale" min="0.5" max="3" value="1" step="0.05">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" id="btn-save-config" class="rounded-lg bg-blue-600 hover:bg-blue-500 px-3 py-2 text-xs font-semibold text-white transition-colors flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-floppy-disk"></i> Simpan Konfigurasi
+                        </button>
+                        <button type="button" id="btn-load-config" class="rounded-lg bg-slate-800 hover:bg-slate-700 border border-gray-700 px-3 py-2 text-xs font-semibold text-gray-200 transition-colors flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-folder-open"></i> Load Konfigurasi
+                        </button>
+                        <input type="file" id="input-config" accept="application/json,.json" class="hidden">
+                    </div>
+
+                    <div class="space-y-2 pt-2 border-t border-gray-800">
+                        <label class="block text-xs font-semibold text-gray-300 uppercase tracking-wider">File Audio Track</label>
+                        <div class="relative border border-dashed border-gray-700 hover:border-purple-500 rounded-xl p-4 text-center hover:bg-slate-800/40 transition-all cursor-pointer group" onclick="document.getElementById('input-audio').click()">
+                            <i class="fa-solid fa-music text-3xl text-gray-500 group-hover:text-purple-400 transition-colors mb-2"></i>
+                            <p class="text-xs text-gray-300 font-medium" id="audio-filename">Klik untuk memilih file Audio (MP3, WAV, FLAC, M4A)</p>
+                            <input type="file" id="input-audio" accept="audio/*" class="hidden">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-audio" class="tab-content hidden space-y-5">
+                    <div class="flex items-center justify-between pb-2 border-b border-gray-800">
+                        <h3 class="text-xs font-bold text-gray-200 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-purple-400"></i> Studio Audio Mastering
+                        </h3>
+                        <span class="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">Realtime DSP</span>
+                    </div>
+
+                    <!-- Genre & Mastering Presets -->
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1.5 font-medium">Preset Audio Mastering & Genre</label>
+                        <select id="audio-preset" class="w-full bg-slate-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-blue-500">
+                            <option value="flat">Flat (Default)</option>
+                            <option value="deep-house">Deep House (Punchy Bass & Warm Highs)</option>
+                            <option value="lo-fi">Lo-Fi Chill (Warm Mids & Soft Highs)</option>
+                            <option value="rnb">R&B / Soul (Deep Lows & Crisp Vocal)</option>
+                            <option value="reggae">Reggae / Dub (Heavy Sub & Bass Bounce)</option>
+                            <option value="synthwave">Synthwave / Retrowave (Eighties Punch)</option>
+                            <option value="pop">Pop / Modern Hits (Clear & Vibrant)</option>
+                            <option value="jazz">Jazz / Acoustic Lounge (Balanced Dynamics)</option>
+                            <option value="bass-boost">Bass Boost (Super Low-End)</option>
+                            <option value="vocal">Vocal Enhancer (Crisp Voices)</option>
+                            <option value="electronic">EDM / Electronic Dance</option>
+                            <option value="rock">Rock / Punchy Punch</option>
+                            <option value="club">Club Banger / Loudness</option>
+                            <option value="dynamic">Dynamic Master (Compressor Heavy)</option>
+                        </select>
+                    </div>
+
+                    <!-- Spatial Surround & Normalizer -->
+                    <div class="bg-slate-900/80 p-3.5 rounded-xl border border-gray-800 space-y-3">
+                        <h4 class="text-xs font-semibold text-gray-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-arrows-spin text-purple-400"></i> Spatial Surround & Normalizer
+                        </h4>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="block text-xs font-medium text-gray-200">HD Surround 360° Stereo</span>
+                                <span class="text-[10px] text-gray-400">Rotasi audio 3D stereo melingkar halus</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-surround" class="sr-only peer">
+                                <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                            </label>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Kecepatan Putaran 360°</span>
+                                <span id="val-surround-speed" class="font-mono text-purple-400">1.0x</span>
+                            </div>
+                            <input type="range" id="surround-speed" min="0.1" max="3" value="1" step="0.1">
+                        </div>
+                        <div class="flex items-center justify-between pt-2 border-t border-gray-800">
+                            <div>
+                                <span class="block text-xs font-medium text-gray-200">Normalize Audio (Limiter)</span>
+                                <span class="text-[10px] text-gray-400">Stabilkan puncak dinamika volume</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-normalize" class="sr-only peer">
+                                <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 5-Band Equalizer -->
+                    <div class="bg-slate-900/80 p-3.5 rounded-xl border border-gray-800 space-y-3">
+                        <h4 class="text-xs font-semibold text-gray-300">5-Band Parametric Equalizer</h4>
+                        <div class="space-y-2.5">
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                    <span>Sub Bass (60 Hz)</span>
+                                    <span id="val-sub" class="font-mono text-blue-400">0 dB</span>
+                                </div>
+                                <input type="range" id="eq-sub" min="-18" max="18" value="0" step="0.5">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                    <span>Bass (250 Hz)</span>
+                                    <span id="val-bass" class="font-mono text-blue-400">0 dB</span>
+                                </div>
+                                <input type="range" id="eq-bass" min="-18" max="18" value="0" step="0.5">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                    <span>Midrange (1 kHz)</span>
+                                    <span id="val-mid" class="font-mono text-blue-400">0 dB</span>
+                                </div>
+                                <input type="range" id="eq-mid" min="-18" max="18" value="0" step="0.5">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                    <span>High Mid (4 kHz)</span>
+                                    <span id="val-highmid" class="font-mono text-blue-400">0 dB</span>
+                                </div>
+                                <input type="range" id="eq-highmid" min="-18" max="18" value="0" step="0.5">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                    <span>Treble (12 kHz)</span>
+                                    <span id="val-treble" class="font-mono text-blue-400">0 dB</span>
+                                </div>
+                                <input type="range" id="eq-treble" min="-18" max="18" value="0" step="0.5">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamics Compressor & Master Gain -->
+                    <div class="bg-slate-900/80 p-3.5 rounded-xl border border-gray-800 space-y-3">
+                        <h4 class="text-xs font-semibold text-gray-300">Dynamics Compressor & Gain</h4>
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Compression Ratio</span>
+                                <span id="val-comp-ratio" class="font-mono text-purple-400">1.0:1</span>
+                            </div>
+                            <input type="range" id="comp-ratio" min="1" max="12" value="1" step="0.5">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Master Gain Boost</span>
+                                <span id="val-master-gain" class="font-mono text-purple-400">0.0 dB</span>
+                            </div>
+                            <input type="range" id="master-gain" min="-12" max="12" value="0" step="0.5">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-spectrum" class="tab-content hidden space-y-4">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-semibold text-gray-300 uppercase tracking-wider">Tampilkan Spektrum Audio</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="toggle-spectrum" class="sr-only peer">
+                            <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1 font-medium">Jenis Visual Spektrum (16 Mode)</label>
+                        <select id="spec-type" class="w-full bg-slate-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-blue-500 font-medium">
+                            <option value="bar">1. Bar Spectrum (Equalizer Bars)</option>
+                            <option value="line">2. Line Spectrum</option>
+                            <option value="dot">3. Dot Spectrum</option>
+                            <option value="circle">4. Circular Spectrum</option>
+                            <option value="radial">5. Radial Spectrum</option>
+                            <option value="particle">6. Particle Spectrum</option>
+                            <option value="ribbon">7. Ribbon Spectrum</option>
+                            <option value="spiral">8. Spiral Spectrum</option>
+                            <option value="tunnel">9. Tunnel Spectrum</option>
+                            <option value="3d">10. 3D Spectrum</option>
+                            <option value="neon">11. Neon Spectrum</option>
+                            <option value="mesh">12. Mesh Spectrum</option>
+                            <option value="wireframe">13. Wireframe Waves Spektrum</option>
+                            <option value="fluid">14. Fluid Spectrum</option>
+                            <option value="glow">15. Glow Spectrum</option>
+                            <option value="wireframe-mesh-wave">16. Wireframe Mesh Wave Spektrum</option>
+                        </select>
+                    </div>
+
+                    <div class="bg-slate-900/80 p-3.5 rounded-xl border border-gray-800 space-y-3">
+                        <span class="text-xs font-semibold text-gray-300 block">Skala, Posisi & Dimensi Spektrum</span>
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Skala / Ukuran</span>
+                                <span id="val-spec-scale" class="font-mono text-blue-400">1.00x</span>
+                            </div>
+                            <input type="range" id="spec-scale" min="0.3" max="3" value="1" step="0.05">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                    <span>Posisi X</span>
+                                    <span id="val-spec-x" class="font-mono text-blue-400">0</span>
+                                </div>
+                                <input type="range" id="spec-x" min="-50" max="50" value="0" step="1">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                    <span>Posisi Y</span>
+                                    <span id="val-spec-y" class="font-mono text-blue-400">0</span>
+                                </div>
+                                <input type="range" id="spec-y" min="-50" max="50" value="0" step="1">
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Tinggi / Panjang Maksimal</span>
+                                <span id="val-spec-height" class="font-mono text-blue-400">100%</span>
+                            </div>
+                            <input type="range" id="spec-height" min="10" max="250" value="100" step="5">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Sensitivitas Audio</span>
+                                <span id="val-spec-sensitivity" class="font-mono text-blue-400">1.0x</span>
+                            </div>
+                            <input type="range" id="spec-sensitivity" min="0.2" max="3" value="1" step="0.1">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Ketebalan Elemen / Garis</span>
+                                <span id="val-spec-thickness" class="font-mono text-blue-400">3px</span>
+                            </div>
+                            <input type="range" id="spec-thickness" min="1" max="15" value="3" step="1">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Transparansi / Opacity Spektrum</span>
+                                <span id="val-spec-opacity" class="font-mono text-blue-400">100%</span>
+                            </div>
+                            <input type="range" id="spec-opacity" min="0" max="100" value="100" step="1">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Detail Sampel per Band</span>
+                                <span id="val-spec-density" class="font-mono text-blue-400">Sedang</span>
+                            </div>
+                            <input type="range" id="spec-density" min="1" max="4" value="2" step="1">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                    <span>Start Frequency</span>
+                                    <span id="val-spec-start-frequency" class="font-mono text-blue-400">20 Hz</span>
+                                </div>
+                                <input type="range" id="spec-start-frequency" min="20" max="19990" value="20" step="10">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                    <span>End Frequency</span>
+                                    <span id="val-spec-end-frequency" class="font-mono text-blue-400">16,000 Hz</span>
+                                </div>
+                                <input type="range" id="spec-end-frequency" min="30" max="20000" value="16000" step="10">
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Frequency Bands</span>
+                                <span id="val-spec-bands" class="font-mono text-blue-400">64</span>
+                            </div>
+                            <input type="range" id="spec-bands" min="8" max="256" value="64" step="8">
+                        </div>
+                    </div>
+
+                    <!-- Spectrum Pulse & Clone Features -->
+                    <div class="bg-slate-900/80 p-3.5 rounded-xl border border-gray-800 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-semibold text-gray-300">Efek Dentuman (Pulse Spektrum)</label>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-spec-pulse" class="sr-only peer">
+                                <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Sensitivitas Dentuman</span>
+                                <span id="val-spec-pulse-sens" class="font-mono text-blue-400">1.0x</span>
+                            </div>
+                            <input type="range" id="spec-pulse-sens" min="0.2" max="3" value="1" step="0.1">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Kedalaman Zoom Scale</span>
+                                <span id="val-spec-pulse-zoom" class="font-mono text-blue-400">30%</span>
+                            </div>
+                            <input type="range" id="spec-pulse-zoom" min="5" max="100" value="30" step="5">
+                        </div>
+                        <div class="pt-2 border-t border-gray-800 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <span class="block text-xs font-medium text-gray-200">Clone / Refleksi Spektrum</span>
+                                    <span class="text-[10px] text-gray-400">Duplikasi cermin spektrum audio</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="toggle-spec-clone" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                            <div>
+                                <label class="text-[11px] text-gray-400 block mb-1">Arah Flip Clone</label>
+                                <select id="spec-clone-flip" class="w-full bg-slate-950 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-gray-200 focus:outline-none">
+                                    <option value="vertical">Flip Vertikal (Atas/Bawah)</option>
+                                    <option value="horizontal">Flip Horisontal (Kiri/Kanan)</option>
+                                    <option value="dual">Dual Mirror (Vertikal & Horisontal)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/80 p-3.5 rounded-xl border border-gray-800 space-y-3">
+                        <label class="block text-xs font-semibold text-gray-300">Warna Visual Spektrum</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-[11px] text-gray-400 mb-1 block">Warna Utama</label>
+                                <input type="color" id="spec-color1" value="#3b82f6" class="w-full h-8 rounded border border-gray-700 bg-slate-800 cursor-pointer">
+                            </div>
+                            <div>
+                                <label class="text-[11px] text-gray-400 mb-1 block">Warna Sekunder (Gradien)</label>
+                                <input type="color" id="spec-color2" value="#a855f7" class="w-full h-8 rounded border border-gray-700 bg-slate-800 cursor-pointer">
+                            </div>
+                        </div>
+                        <button type="button" id="btn-swap-spec-colors" class="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-xs text-gray-300 hover:bg-slate-700 hover:text-white transition-colors flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-right-left"></i> Tukar Warna Utama & Sekunder
+                        </button>
+                        <div>
+                            <label class="block text-[11px] text-gray-400 mb-1">Arah Gradasi</label>
+                            <select id="spec-gradient-mode" class="w-full bg-slate-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-blue-500">
+                                <option value="vertical">Vertikal</option>
+                                <option value="horizontal">Mendatar</option>
+                                <option value="circular">Melingkar</option>
+                            </select>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Sebaran Gradasi</span>
+                                <span id="val-spec-gradient" class="font-mono text-blue-400">100%</span>
+                            </div>
+                            <input type="range" id="spec-gradient" min="5" max="100" value="100" step="1">
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/80 p-3.5 rounded-xl border border-gray-800 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="block text-xs font-semibold text-gray-300">Glow Responsif Spektrum</span>
+                                <span class="text-[10px] text-gray-400">Warna glow mengikuti kanal warna spektrum</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-spec-glow" class="sr-only peer">
+                                <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Ambang Glow</span>
+                                <span id="val-spec-glow-threshold" class="font-mono text-blue-400">15%</span>
+                            </div>
+                            <input type="range" id="spec-glow-threshold" min="0" max="100" value="15" step="1">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Radius Glow</span>
+                                <span id="val-spec-glow-radius" class="font-mono text-blue-400">18px</span>
+                            </div>
+                            <input type="range" id="spec-glow-radius" min="0" max="50" value="18" step="1">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Intensitas Glow</span>
+                                <span id="val-spec-glow-intensity" class="font-mono text-blue-400">70%</span>
+                            </div>
+                            <input type="range" id="spec-glow-intensity" min="0" max="100" value="70" step="1">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-overlay" class="tab-content hidden space-y-4">
+                    
+                    <!-- Overlay Image Section -->
+                    <div class="space-y-3 pb-3 border-b border-gray-800">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-semibold text-gray-300 uppercase tracking-wider">Tampilkan Gambar Overlay Utama</label>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-overlay" class="sr-only peer" checked>
+                                <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                            </label>
+                        </div>
+
+                        <div class="relative border border-dashed border-gray-700 hover:border-purple-500 rounded-xl p-3 text-center hover:bg-slate-800/40 transition-all cursor-pointer" onclick="document.getElementById('input-overlay').click()">
+                            <i class="fa-solid fa-layer-group text-2xl text-gray-500 mb-1"></i>
+                            <p class="text-xs text-gray-300 font-medium" id="overlay-filename">Klik memilih Gambar Overlay (PNG / Green screen)</p>
+                            <input type="file" id="input-overlay" accept="image/*" class="hidden">
+                        </div>
+
+                        <div class="bg-slate-900/80 p-2.5 rounded-xl border border-gray-800 flex items-center justify-between">
+                            <div>
+                                <span class="block text-xs font-medium text-gray-200">Hapus Background Hijau Overlay</span>
+                                <span class="text-[10px] text-gray-400">Filter Green Screen otomatis</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-greenscreen" class="sr-only peer">
+                                <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500"></div>
+                            </label>
+                        </div>
+
+                        <!-- Rotation Mode -->
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-gray-800 space-y-2.5">
+                            <h4 class="text-xs font-semibold text-gray-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-rotate text-purple-400"></i> Mode Rotasi Overlay
+                            </h4>
+                            <div>
+                                <select id="rot-mode" class="w-full bg-slate-900 text-gray-200 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-purple-500">
+                                    <option value="none" class="bg-slate-900 text-gray-200">Statis (Tanpa Rotasi)</option>
+                                    <option value="manual" class="bg-slate-900 text-gray-200">Sudut Manual</option>
+                                    <option value="auto" class="bg-slate-900 text-gray-200">Rotasi Otomatis (Auto Spin)</option>
+                                    <option value="audio" class="bg-slate-900 text-gray-200">Rotasi Reaktif Audio</option>
+                                </select>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                    <span>Sudut / Kecepatan Rotasi</span>
+                                    <span id="val-rot-speed" class="font-mono text-purple-400">0°</span>
+                                </div>
+                                <input type="range" id="rot-speed" min="-180" max="180" value="0" step="1">
+                            </div>
+                        </div>
+
+                        <!-- Pulse Settings -->
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-gray-800 space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold text-gray-300">Efek Detak (Pulse Audio)</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="toggle-pulse" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                                </label>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                    <span>Sensitivitas Detakan</span>
+                                    <span id="val-pulse-sens" class="font-mono text-purple-400">1.0x</span>
+                                </div>
+                                <input type="range" id="pulse-sens" min="0.2" max="3" value="1" step="0.1">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                    <span>Kecepatan Reaksi Detak</span>
+                                    <span id="val-pulse-speed" class="font-mono text-purple-400">Normal</span>
+                                </div>
+                                <input type="range" id="pulse-speed" min="1" max="5" value="3" step="1">
+                            </div>
+                        </div>
+
+                        <!-- Dimensions & Positioning -->
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-gray-800 space-y-2.5">
+                            <span class="text-xs font-semibold text-gray-300 block">Skala & Posisi Overlay</span>
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                    <span>Skala Ukuran</span>
+                                    <span id="val-overlay-scale" class="font-mono text-purple-400">1.00x</span>
+                                </div>
+                                <input type="range" id="overlay-scale" min="0.1" max="3" value="1" step="0.05">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                    <span>Transparansi (Opacity)</span>
+                                    <span id="val-overlay-opacity" class="font-mono text-purple-400">100%</span>
+                                </div>
+                                <input type="range" id="overlay-opacity" min="0" max="100" value="100" step="1">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                        <span>Posisi X</span>
+                                        <span id="val-overlay-x" class="font-mono text-purple-400">0</span>
+                                    </div>
+                                    <input type="range" id="overlay-x" min="-50" max="50" value="0" step="1">
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                        <span>Posisi Y</span>
+                                        <span id="val-overlay-y" class="font-mono text-purple-400">0</span>
+                                    </div>
+                                    <input type="range" id="overlay-y" min="-50" max="50" value="0" step="1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Text Overlay -->
+                    <div class="space-y-3 py-3 border-b border-gray-800">
+                        <div class="flex items-center justify-between">
+                            <label for="toggle-text-overlay" class="text-xs font-semibold text-gray-300 uppercase tracking-wider">Teks, Judul & Subjudul</label>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-text-overlay" class="sr-only peer">
+                                <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                            </label>
+                        </div>
+                        <input id="text-overlay-title" type="text" maxlength="120" aria-label="Judul teks" placeholder="Judul" class="w-full bg-slate-900 border border-gray-700 rounded-lg px-2.5 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-500">
+                        <input id="text-overlay-subtitle" type="text" maxlength="180" aria-label="Subjudul teks" placeholder="Subjudul" class="w-full bg-slate-900 border border-gray-700 rounded-lg px-2.5 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-500">
+                        <div>
+                            <label for="text-overlay-case" class="block text-[10px] text-gray-400 mb-1">Change Case</label>
+                            <select id="text-overlay-case" class="w-full bg-slate-900 text-gray-200 border border-gray-700 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-purple-500">
+                                <option value="none">Sesuai input</option><option value="uppercase">UPPERCASE</option><option value="lowercase">lowercase</option><option value="capitalize">Title Case</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label for="text-overlay-font-family" class="block text-[10px] text-gray-400 mb-1">Font Family (Google Fonts / lokal)</label>
+                                <select id="text-overlay-font-family" class="w-full bg-slate-900 text-gray-200 border border-gray-700 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-purple-500">
+                                    <option value="local" selected>Font lokal</option>
+                                    <optgroup label="Google Fonts">
+                                        <option value="google:Roboto">Roboto</option><option value="google:Montserrat">Montserrat</option><option value="google:Open Sans">Open Sans</option><option value="google:Google Sans">Google Sans</option><option value="google:Poppins">Poppins</option><option value="google:Noto Sans">Noto Sans</option><option value="google:Oswald">Oswald</option><option value="google:Bebas Neue">Bebas Neue</option><option value="google:Lato">Lato</option><option value="google:Raleway">Raleway</option><option value="google:Nunito">Nunito</option><option value="google:Playfair Display">Playfair Display</option><option value="google:Merriweather">Merriweather</option><option value="google:Pacifico">Pacifico</option><option value="google:Lobster">Lobster</option><option value="google:DM Sans">DM Sans</option><option value="google:Inter">Inter</option><option value="google:Ubuntu">Ubuntu</option><option value="google:Source Sans 3">Source Sans 3</option><option value="google:Space Grotesk">Space Grotesk</option><option value="google:Comfortaa">Comfortaa</option><option value="google:Dancing Script">Dancing Script</option><option value="google:Abril Fatface">Abril Fatface</option>
+                                    </optgroup>
+                                    <optgroup label="Font umum / generik">
+                                        <option value="Arial">Arial</option><option value="Verdana">Verdana</option><option value="Tahoma">Tahoma</option><option value="Georgia">Georgia</option><option value="Times New Roman">Times New Roman</option><option value="Courier New">Courier New</option><option value="Trebuchet MS">Trebuchet MS</option><option value="Impact">Impact</option><option value="system-ui">System UI</option><option value="serif">Serif</option><option value="sans-serif">Sans-serif</option><option value="monospace">Monospace</option><option value="cursive">Cursive</option><option value="fantasy">Fantasy</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="text-overlay-align" class="block text-[10px] text-gray-400 mb-1">Alignment</label>
+                                <select id="text-overlay-align" class="w-full bg-slate-900 text-gray-200 border border-gray-700 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-purple-500">
+                                    <option value="left">Kiri</option><option value="center" selected>Tengah</option><option value="right">Kanan</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="text-overlay-local-font-container">
+                            <label for="text-overlay-font" class="block text-[10px] text-gray-400 mb-1">Nama font lokal</label>
+                            <input id="text-overlay-font" type="text" maxlength="80" list="text-overlay-fonts" value="Arial" placeholder="Contoh: nama font yang terpasang" class="w-full bg-slate-900 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-purple-500">
+                            <datalist id="text-overlay-fonts">
+                                <option value="Arial"><option value="Verdana"><option value="Tahoma"><option value="Georgia"><option value="Times New Roman"><option value="Courier New"><option value="Trebuchet MS"><option value="Impact">
+                            </datalist>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1"><span>Skala Teks</span><span id="val-text-overlay-scale" class="font-mono text-purple-400">1.00x</span></div>
+                            <input type="range" id="text-overlay-scale" min="0.3" max="3" value="1" step="0.05">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center justify-between bg-slate-900 border border-gray-700 rounded-lg px-2 py-1.5 text-[10px] text-gray-400">Warna teks<input id="text-overlay-color" type="color" value="#ffffff" class="w-7 h-6 bg-transparent border-0 p-0 cursor-pointer" aria-label="Warna teks utama"></label>
+                            <label class="flex items-center justify-between bg-slate-900 border border-gray-700 rounded-lg px-2 py-1.5 text-[10px] text-gray-400">Warna stroke<input id="text-overlay-stroke-color" type="color" value="#000000" class="w-7 h-6 bg-transparent border-0 p-0 cursor-pointer" aria-label="Warna garis tepi teks"></label>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1"><span>Transparansi Teks</span><span id="val-text-overlay-opacity" class="font-mono text-purple-400">100%</span></div>
+                            <input type="range" id="text-overlay-opacity" min="0" max="100" value="100" step="1">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div><div class="flex justify-between text-xs text-gray-400 mb-1"><span>Posisi X</span><span id="val-text-overlay-x" class="font-mono text-purple-400">0</span></div><input type="range" id="text-overlay-x" min="-50" max="50" value="0" step="1"></div>
+                            <div><div class="flex justify-between text-xs text-gray-400 mb-1"><span>Posisi Y</span><span id="val-text-overlay-y" class="font-mono text-purple-400">-35</span></div><input type="range" id="text-overlay-y" min="-50" max="50" value="-35" step="1"></div>
+                        </div>
+                        <p class="text-[10px] text-gray-400 text-center"><i class="fa-solid fa-hand-pointer text-purple-400"></i> Aktifkan teks, lalu geser langsung di canvas.</p>
+                    </div>
+
+                    <!-- Watermark Logo Section -->
+                    <div class="space-y-3 pt-2">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-semibold text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-stamp text-emerald-400"></i> Watermark / Logo
+                            </label>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-logo" class="sr-only peer" checked>
+                                <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
+                        </div>
+
+                        <div class="relative border border-dashed border-gray-700 hover:border-emerald-500 rounded-xl p-3 text-center hover:bg-slate-800/40 transition-all cursor-pointer" onclick="document.getElementById('input-logo').click()">
+                            <i class="fa-solid fa-image text-2xl text-gray-500 mb-1"></i>
+                            <p class="text-xs text-gray-300 font-medium" id="logo-filename">Klik memilih Gambar Logo / Watermark</p>
+                            <input type="file" id="input-logo" accept="image/*" class="hidden">
+                        </div>
+
+                        <div class="bg-slate-900/80 p-2.5 rounded-xl border border-gray-800 flex items-center justify-between">
+                            <div>
+                                <span class="block text-xs font-medium text-gray-200">Hapus BG Hijau Logo</span>
+                                <span class="text-[10px] text-gray-400">Green Screen filter logo</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-logo-greenscreen" class="sr-only peer">
+                                <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                            </label>
+                        </div>
+
+                        <!-- Logo Scale & Position Controls -->
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-gray-800 space-y-2.5">
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                    <span>Skala Logo</span>
+                                    <span id="val-logo-scale" class="font-mono text-emerald-400">0.50x</span>
+                                </div>
+                                <input type="range" id="logo-scale" min="0.05" max="2" value="0.5" step="0.05">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                    <span>Transparansi Logo (Opacity)</span>
+                                    <span id="val-logo-opacity" class="font-mono text-emerald-400">80%</span>
+                                </div>
+                                <input type="range" id="logo-opacity" min="0" max="100" value="80" step="1">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                        <span>Posisi X</span>
+                                        <span id="val-logo-x" class="font-mono text-emerald-400">40</span>
+                                    </div>
+                                    <input type="range" id="logo-x" min="-50" max="50" value="40" step="1">
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                        <span>Posisi Y</span>
+                                        <span id="val-logo-y" class="font-mono text-emerald-400">-40</span>
+                                    </div>
+                                    <input type="range" id="logo-y" min="-50" max="50" value="-40" step="1">
+                                </div>
+                            </div>
+                            <p class="text-[10px] text-gray-400 text-center flex items-center justify-center gap-1 pt-1 border-t border-gray-800">
+                                <i class="fa-solid fa-hand-pointer text-emerald-400"></i> Geser langsung Overlay / Logo di Canvas dengan Mouse!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-lyrics" class="tab-content hidden space-y-4">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-semibold text-gray-300 uppercase tracking-wider">Tampilkan Lirik Lagu</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="toggle-lyrics" class="sr-only peer" checked>
+                            <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                        </label>
+                    </div>
+
+                    <!-- Lyrics Text Area Input -->
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-medium text-gray-400">Input Teks Lirik (1 Baris per Baris)</label>
+                        <textarea id="lyrics-input" rows="4" class="w-full bg-slate-900 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-200 focus:outline-none focus:border-indigo-500 font-sans leading-relaxed" placeholder="Masukkan lirik lagu di sini...&#10;Baris 1&#10;Baris 2"></textarea>
+                    </div>
+
+                    <!-- Sync Controls Bar -->
+                    <div class="bg-indigo-950/40 border border-indigo-500/30 p-3 rounded-xl space-y-2">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-[11px] text-indigo-300 font-medium truncate">Set Baris Berikutnya:</p>
+                                <p id="next-lyric-preview" class="text-xs font-semibold text-white truncate">-- Tidak ada lirik --</p>
+                            </div>
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <button id="btn-stamp-lyric" class="px-2.5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition-all shadow-md shadow-indigo-600/30 active:scale-95 flex items-center gap-1">
+                                    <i class="fa-solid fa-clock"></i> Set Sync
+                                </button>
+                                <button id="btn-stamp-blank-lyric" class="px-2.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-indigo-300 font-semibold text-xs border border-indigo-500/30 transition-all active:scale-95 flex items-center gap-1" title="Tambah Jeda Kosong (Tanpa Teks)">
+                                    <i class="fa-solid fa-eye-slash"></i> + Jeda
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex justify-end pt-1 border-t border-indigo-500/20">
+                            <button id="btn-reset-all-lyrics" class="text-[11px] text-red-400 hover:text-red-300 font-medium flex items-center gap-1 transition-colors">
+                                <i class="fa-solid fa-rotate-left text-[10px]"></i> Reset Semua Timestamp
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Synced Lines Table Preview -->
+                    <div class="bg-slate-900/80 p-2.5 rounded-xl border border-gray-800 max-h-36 overflow-y-auto space-y-1" id="lyrics-list-container">
+                        <p class="text-[11px] text-gray-500 text-center py-2">Belum ada lirik disinkronisasi.</p>
+                    </div>
+
+                    <!-- Lyrics Styling Controls -->
+                    <div class="bg-slate-900/80 p-3.5 rounded-xl border border-gray-800 space-y-3">
+                        <h4 class="text-xs font-semibold text-gray-300">Desain & Font Lirik</h4>
+                        
+                        <div class="space-y-2">
+                            <div>
+                                <label class="text-[11px] text-gray-400 block mb-1">Kapitalisasi Teks Lirik</label>
+                                <select id="lyric-transform" class="w-full bg-slate-950 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-gray-200 focus:outline-none">
+                                    <option value="none">Asli (Sesuai Teks Input)</option>
+                                    <option value="uppercase">HURUF KAPITAL (UPPERCASE)</option>
+                                    <option value="lowercase">huruf kecil (lowercase)</option>
+                                    <option value="capitalize">Kapital Setiap Kata (Title Case)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="text-[11px] text-gray-400 block mb-1">Font Family</label>
+                                <select id="lyric-font" class="w-full bg-slate-950 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-gray-200 focus:outline-none"></select>
+                            </div>
+
+                            <div id="custom-font-container" class="hidden">
+                                <label for="lyric-custom-font" class="block text-[10px] text-gray-400 mb-1">Nama font lokal</label>
+                                <input type="text" id="lyric-custom-font" maxlength="80" list="text-overlay-fonts" placeholder="Contoh: nama font yang terpasang" class="w-full bg-slate-950 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-gray-200 focus:outline-none">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-[11px] text-gray-400 mb-1 block">Warna Teks Utama</label>
+                                <input type="color" id="lyric-color" value="#ffffff" class="w-full h-7 rounded border border-gray-700 bg-slate-800 cursor-pointer">
+                            </div>
+                            <div>
+                                <label class="text-[11px] text-gray-400 mb-1 block">Warna Garis Tepi (Stroke)</label>
+                                <input type="color" id="lyric-stroke-color" value="#000000" class="w-full h-7 rounded border border-gray-700 bg-slate-800 cursor-pointer">
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Ukuran / Skala Font</span>
+                                <span id="val-lyric-size" class="font-mono text-indigo-400">32px</span>
+                            </div>
+                            <input type="range" id="lyric-size" min="16" max="72" value="32" step="1">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Posisi Vertikal Y</span>
+                                <span id="val-lyric-y" class="font-mono text-indigo-400">80%</span>
+                            </div>
+                            <input type="range" id="lyric-y" min="10" max="90" value="80" step="1">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Transparansi Opacity</span>
+                                <span id="val-lyric-opacity" class="font-mono text-indigo-400">100%</span>
+                            </div>
+                            <input type="range" id="lyric-opacity" min="0" max="100" value="100" step="1">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-export" class="tab-content hidden space-y-4">
+                    <div class="bg-blue-950/40 border border-blue-500/30 p-3.5 rounded-xl text-xs text-blue-200">
+                        <i class="fa-solid fa-circle-info text-blue-400 mr-1.5"></i> 
+                        Video akan di-render secara otomatis mengikuti durasi audio.
+                    </div>
+
+                    <!-- Toggle Audio Monitoring during Export -->
+                    <div class="bg-slate-900/80 p-3 rounded-xl border border-gray-800 flex items-center justify-between">
+                        <div>
+                            <span class="block text-xs font-medium text-gray-200">Dengarkan Audio Saat Ekspor</span>
+                            <span class="text-[10px] text-gray-400">Putar suara ke speaker selama proses render berlangsung</span>
+                            <span class="block text-[10px] text-gray-500">Volume playback hanya memengaruhi speaker, bukan hasil ekspor.</span>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="toggle-export-audio" class="sr-only peer">
+                            <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+
+                    <!-- Live Hardware & Performance Monitor Widget -->
+                    <div class="bg-slate-900/90 border border-gray-800 p-3.5 rounded-xl space-y-2.5">
+                        <div class="flex items-center justify-between pb-1.5 border-b border-gray-800">
+                            <h4 class="text-xs font-bold text-gray-200 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-microchip text-emerald-400"></i> Performance & Hardware Monitor
+                            </h4>
+                            <span class="text-[9px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono">LIVE METRICS</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div class="bg-slate-950/80 p-2 rounded border border-gray-800 flex flex-col justify-between">
+                                <span class="text-[10px] text-gray-400">Rendering Speed</span>
+                                <div class="flex items-baseline gap-1 mt-1">
+                                    <span id="perf-fps" class="text-sm font-bold font-mono text-emerald-400">60</span>
+                                    <span class="text-[10px] text-gray-500">FPS</span>
+                                </div>
+                            </div>
+                            <div class="bg-slate-950/80 p-2 rounded border border-gray-800 flex flex-col justify-between">
+                                <span class="text-[10px] text-gray-400">JS Memory RAM</span>
+                                <div class="flex items-baseline gap-1 mt-1">
+                                    <span id="perf-ram" class="text-sm font-bold font-mono text-blue-400">0.0</span>
+                                    <span class="text-[10px] text-gray-500">MB</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[11px] text-gray-400 mb-1">
+                                <span>CPU Frame Budget Load</span>
+                                <span id="perf-cpu-val" class="font-mono text-emerald-400">12%</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+                                <div id="perf-cpu-bar" class="h-full bg-emerald-500 w-[12%] transition-all duration-300"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[11px] text-gray-400 mb-1">
+                                <span>GPU / Canvas Draw Load</span>
+                                <span id="perf-gpu-val" class="font-mono text-purple-400">24%</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+                                <div id="perf-gpu-bar" class="h-full bg-purple-500 w-[24%] transition-all duration-300"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1 font-medium">Resolusi Video Output</label>
+                        <select id="export-res" class="w-full bg-slate-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-blue-500">
+                            <option value="1280x720">HD (1280 x 720) - 16:9 Standard</option>
+                            <option value="1920x1080">Full HD (1920 x 1080) - High Quality</option>
+                            <option value="854x480">SD (854 x 480) - Fast Render</option>
+                            <option value="1080x1920">Vertical Shorts (1080 x 1920) - TikTok / Reels</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1 font-medium">Frame Rate (FPS)</label>
+                        <select id="export-fps" class="w-full bg-slate-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-blue-500">
+                            <option value="30">30 FPS (Standar Video)</option>
+                            <option value="60">60 FPS (Super Smooth Visuals)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1 font-medium">Nama File Video Output</label>
+                        <div class="relative flex items-center">
+                            <input type="text" id="export-filename" value="MySeamlessLoop" class="w-full bg-slate-900 border border-gray-700 rounded-lg pl-3 pr-14 py-2 text-xs text-gray-200 focus:outline-none focus:border-blue-500">
+                            <span class="absolute right-3 text-xs font-bold text-gray-400">.mp4</span>
+                        </div>
+                    </div>
+
+                    <!-- Export Progress Status Box -->
+                    <div id="export-progress-box" class="bg-slate-900 p-3.5 rounded-xl border border-gray-800 space-y-2 hidden">
+                        <div class="flex justify-between items-center text-xs">
+                            <span id="export-progress-status" class="text-blue-400 font-semibold flex items-center gap-2">
+                                <i class="fa-solid fa-spinner animate-spin"></i> Rendering Video MP4...
+                            </span>
+                            <span id="export-progress-text" class="font-mono text-gray-300 font-bold">0%</span>
+                        </div>
+                        <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+                            <div id="export-progress-bar" class="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 w-0 transition-all duration-300"></div>
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <button id="btn-export" class="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-xs shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95">
+                            <i class="fa-solid fa-file-video text-sm"></i> Mulai Export Video (.MP4)
+                        </button>
+                        <button id="btn-stop-export" class="w-full py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow-lg transition-all flex items-center justify-center gap-2 hidden">
+                            <i class="fa-solid fa-stop"></i> Hentikan & Simpan Video
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const canvas = document.getElementById('main-canvas');
+        const ctx = canvas ? canvas.getContext('2d') : null;
+        const statusOverlay = document.getElementById('status-overlay');
+        
+        if (canvas) {
+            canvas.width = 1280;
+            canvas.height = 720;
+            if (ctx) {
+                ctx.fillStyle = '#0b0f19';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        const state = {
+            audioContext: null,
+            audioElement: new Audio(),
+            audioUrl: null,
+            sourceNode: null,
+            
+            // 5-Band EQ Nodes
+            subEQ: null,
+            bassEQ: null,
+            midEQ: null,
+            highmidEQ: null,
+            trebleEQ: null,
+            
+            // Dynamics Compressor, Panner (Surround) & Master Gain
+            compressorNode: null,
+            pannerNode: null,
+            surroundAngle: 0,
+            masterGainNode: null,
+            speakerGainNode: null,
+            
+            analyser: null,
+            destNode: null,
+            
+            isPlaying: false,
+            isLooping: false,
+            isMuted: false,
+            isExporting: false,
+            animationFrame: null,
+            
+            // Background Image State
+            bgImg: new Image(),
+            bgVideo: null,
+            bgVideoUrl: null,
+            bgScale: 1,
+            isBgLoaded: false,
+            
+            // Overlay Image & Greenscreen State
+            overlayImg: new Image(),
+            chromaKeyCanvas: document.createElement('canvas'),
+            chromaKeyCtx: null,
+            isOverlayLoaded: false,
+            overlayAngle: 0,
+            
+            // Watermark / Logo State
+            logoImg: new Image(),
+            logoChromaKeyCanvas: document.createElement('canvas'),
+            logoChromaKeyCtx: null,
+            isLogoLoaded: false,
+
+            // Canvas Drag Interaction State
+            isDragging: false,
+            dragTarget: null,
+            
+            // Lyrics State
+            lyricsList: [],
+            currentLyricIndex: -1,
+            
+            // Physics Pulse Dynamic Smoothing
+            currentPulseScale: 0,
+            currentSpecPulseScale: 0,
+            
+            // Performance Monitor State
+            lastFrameTime: performance.now(),
+            frameCount: 0,
+            fps: 60,
+            
+            // Particles Array for Particle Spectrum
+            particles: [],
+            
+            // Canvas-to-MP4 export state
+            exportOutput: null,
+            exportVideoSource: null,
+            exportAudioSource: null,
+            exportFramePromise: Promise.resolve(),
+            exportFramePending: false,
+            exportFrameIndex: 0,
+            exportLastFrameTime: -1,
+            exportFps: 30,
+            exportDuration: 0,
+            exportError: null,
+            exportFinalizing: false
+        };
+
+        state.chromaKeyCtx = state.chromaKeyCanvas.getContext('2d', {willReadFrequently: true});
+        state.logoChromaKeyCtx = state.logoChromaKeyCanvas.getContext('2d', {willReadFrequently: true});
+
+        function bindSlider(id, valId, unit = '', formatter = null) {
+            const slider = document.getElementById(id);
+            const label = document.getElementById(valId);
+            if (!slider || !label) return;
+            const update = () => {
+                const val = formatter ? formatter(slider.value) : slider.value;
+                label.innerText = `${val}${unit}`;
+                if (!state.isPlaying && !state.isExporting) renderFrame();
+            };
+            slider.addEventListener('input', update);
+            update();
+        }
+
+        function formatTime(seconds) {
+            if (isNaN(seconds) || seconds === Infinity) return '00:00';
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function checkStatusOverlay() {
+            if (state.audioElement.src) {
+                statusOverlay?.classList.add('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        function applyChromaKey(sourceImg, targetCanvas, targetCtx) {
+            if (!sourceImg || !sourceImg.width) return;
+            targetCanvas.width = sourceImg.width;
+            targetCanvas.height = sourceImg.height;
+            targetCtx.drawImage(sourceImg, 0, 0);
+            const imgData = targetCtx.getImageData(0, 0, targetCanvas.width, targetCanvas.height);
+            const data = imgData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                // Remove green key background
+                if (g > 90 && g > r * 1.35 && g > b * 1.35) {
+                    data[i + 3] = 0;
+                }
+            }
+            targetCtx.putImageData(imgData, 0, 0);
+        }
+
+        function initAudioContext() {
+            if (state.audioContext) return;
+
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            state.audioContext = new AudioContext();
+            
+            state.sourceNode = state.audioContext.createMediaElementSource(state.audioElement);
+            
+            // 5-Band Equalizer Filters
+            state.subEQ = state.audioContext.createBiquadFilter();
+            state.subEQ.type = 'lowshelf';
+            state.subEQ.frequency.value = 60;
+
+            state.bassEQ = state.audioContext.createBiquadFilter();
+            state.bassEQ.type = 'peaking';
+            state.bassEQ.frequency.value = 250;
+            state.bassEQ.Q.value = 1;
+
+            state.midEQ = state.audioContext.createBiquadFilter();
+            state.midEQ.type = 'peaking';
+            state.midEQ.frequency.value = 1000;
+            state.midEQ.Q.value = 1;
+
+            state.highmidEQ = state.audioContext.createBiquadFilter();
+            state.highmidEQ.type = 'peaking';
+            state.highmidEQ.frequency.value = 4000;
+            state.highmidEQ.Q.value = 1;
+
+            state.trebleEQ = state.audioContext.createBiquadFilter();
+            state.trebleEQ.type = 'highshelf';
+            state.trebleEQ.frequency.value = 12000;
+
+            // Dynamics Compressor
+            state.compressorNode = state.audioContext.createDynamicsCompressor();
+            state.compressorNode.threshold.value = -24;
+            state.compressorNode.knee.value = 30;
+            state.compressorNode.ratio.value = 1;
+            state.compressorNode.attack.value = 0.003;
+            state.compressorNode.release.value = 0.25;
+
+            // Stereo Panner Node for HD Surround 360° Effect
+            if (state.audioContext.createStereoPanner) {
+                state.pannerNode = state.audioContext.createStereoPanner();
+            }
+
+            state.masterGainNode = state.audioContext.createGain();
+            state.speakerGainNode = state.audioContext.createGain();
+
+            state.analyser = state.audioContext.createAnalyser();
+            state.analyser.fftSize = 2048;
+            state.analyser.smoothingTimeConstant = 0.8;
+
+            state.destNode = state.audioContext.createMediaStreamDestination();
+
+            // Web Audio Routing Chain
+            state.sourceNode.connect(state.subEQ);
+            state.subEQ.connect(state.bassEQ);
+            state.bassEQ.connect(state.midEQ);
+            state.midEQ.connect(state.highmidEQ);
+            state.highmidEQ.connect(state.trebleEQ);
+            state.trebleEQ.connect(state.compressorNode);
+            
+            if (state.pannerNode) {
+                state.compressorNode.connect(state.pannerNode);
+                state.pannerNode.connect(state.masterGainNode);
+            } else {
+                state.compressorNode.connect(state.masterGainNode);
+            }
+            
+            state.masterGainNode.connect(state.analyser);
+            state.masterGainNode.connect(state.destNode);
+            
+            state.masterGainNode.connect(state.speakerGainNode);
+            state.speakerGainNode.connect(state.audioContext.destination);
+
+            [['sub', state.subEQ], ['bass', state.bassEQ], ['mid', state.midEQ], ['highmid', state.highmidEQ], ['treble', state.trebleEQ]].forEach(([band, node]) => {
+                node.gain.value = parseFloat(document.getElementById(`eq-${band}`).value);
+            });
+            state.compressorNode.ratio.value = parseFloat(document.getElementById('comp-ratio').value);
+            state.masterGainNode.gain.value = Math.pow(10, parseFloat(document.getElementById('master-gain').value) / 20);
+
+            updateSpeakerGain();
+            state.audioElement.loop = state.isLooping;
+        }
+
+        document.querySelectorAll('input[type="file"]').forEach(input => {
+            const dropZone = input.parentElement;
+            dropZone.addEventListener('dragover', e => {
+                e.preventDefault();
+                dropZone.classList.add('file-drop-active');
+            });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('file-drop-active'));
+            dropZone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropZone.classList.remove('file-drop-active');
+                const file = [...e.dataTransfer.files].find(file => input.accept.split(',').some(type =>
+                    type.endsWith('/*') ? file.type.startsWith(type.slice(0, -1)) : file.type === type
+                ) || (input.id === 'input-bg' && /\.(mp4|m4v|mov|webm|ogv)$/i.test(file.name)));
+                if (!file) return alert('Format file tidak sesuai.');
+                const files = new DataTransfer();
+                files.items.add(file);
+                input.files = files.files;
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+        });
+
+        function syncBackgroundVideo(reset = false) {
+            const video = state.bgVideo;
+            if (!video || video.readyState < 1) return;
+            if (reset) video.currentTime = 0;
+            else if (Number.isFinite(video.duration) && video.duration > 0) {
+                video.currentTime = state.audioElement.currentTime % video.duration;
+            }
+            if (state.isPlaying || state.isExporting) video.play().catch(() => {});
+            else video.pause();
+        }
+
+        // Background Image or Video Input
+        document.getElementById('input-bg')?.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('btn-clear-bg').disabled = true;
+                if (state.bgVideo) {
+                    state.bgVideo.pause();
+                    state.bgVideo.removeAttribute('src');
+                    state.bgVideo.load();
+                }
+                if (state.bgVideoUrl) URL.revokeObjectURL(state.bgVideoUrl);
+                state.bgVideo = null;
+                state.bgVideoUrl = null;
+                state.isBgLoaded = false;
+
+                if (file.type.startsWith('video/') || /\.(mp4|m4v|mov|webm|ogv)$/i.test(file.name)) {
+                    const video = document.createElement('video');
+                    video.loop = true;
+                    video.muted = true;
+                    video.playsInline = true;
+                    video.preload = 'auto';
+                    state.bgVideo = video;
+                    state.bgVideoUrl = URL.createObjectURL(file);
+                    video.addEventListener('loadeddata', () => {
+                        state.isBgLoaded = true;
+                        document.getElementById('bg-filename').innerText = file.name;
+                        document.getElementById('btn-clear-bg').disabled = false;
+                        syncBackgroundVideo();
+                        checkStatusOverlay();
+                        renderFrame();
+                    }, { once: true });
+                    video.addEventListener('error', () => alert('Video background tidak dapat dibuka oleh browser.'), { once: true });
+                    video.src = state.bgVideoUrl;
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    state.bgImg = new Image();
+                    state.bgImg.onload = () => {
+                        state.isBgLoaded = true;
+                        document.getElementById('bg-filename').innerText = file.name;
+                        document.getElementById('btn-clear-bg').disabled = false;
+                        checkStatusOverlay();
+                        renderFrame();
+                    };
+                    state.bgImg.src = evt.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function clearBackground() {
+            if (state.bgVideo) {
+                state.bgVideo.pause();
+                state.bgVideo.removeAttribute('src');
+                state.bgVideo.load();
+            }
+            if (state.bgVideoUrl) URL.revokeObjectURL(state.bgVideoUrl);
+            state.bgVideo = null;
+            state.bgVideoUrl = null;
+            state.bgImg = new Image();
+            state.isBgLoaded = false;
+            document.getElementById('input-bg').value = '';
+            document.getElementById('bg-filename').innerText = 'Klik memilih Gambar atau Video (PNG, JPG, WebP, MP4, MOV)';
+            document.getElementById('btn-clear-bg').disabled = true;
+            renderFrame();
+        }
+        document.getElementById('btn-clear-bg')?.addEventListener('click', clearBackground);
+
+        // Audio Input
+        document.getElementById('input-audio')?.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                if (state.isExporting) await stopExport(false);
+                document.getElementById('btn-stop')?.click();
+                document.getElementById('time-total').innerText = '00:00';
+                if (state.audioUrl) URL.revokeObjectURL(state.audioUrl);
+                state.audioUrl = URL.createObjectURL(file);
+                state.audioElement.src = state.audioUrl;
+                document.getElementById('audio-filename').innerText = file.name;
+                state.audioElement.onloadedmetadata = () => {
+                    document.getElementById('time-total').innerText = formatTime(state.audioElement.duration);
+                    checkStatusOverlay();
+                };
+            }
+        });
+
+        // Overlay Input
+        document.getElementById('input-overlay')?.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    state.overlayImg = new Image();
+                    state.overlayImg.onload = () => {
+                        state.isOverlayLoaded = true;
+                        document.getElementById('overlay-filename').innerText = file.name;
+                        if (document.getElementById('toggle-greenscreen').checked) {
+                            applyChromaKey(state.overlayImg, state.chromaKeyCanvas, state.chromaKeyCtx);
+                        }
+                        renderFrame();
+                    };
+                    state.overlayImg.src = evt.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Logo Input
+        document.getElementById('input-logo')?.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    state.logoImg = new Image();
+                    state.logoImg.onload = () => {
+                        state.isLogoLoaded = true;
+                        document.getElementById('logo-filename').innerText = file.name;
+                        if (document.getElementById('toggle-logo-greenscreen').checked) {
+                            applyChromaKey(state.logoImg, state.logoChromaKeyCanvas, state.logoChromaKeyCtx);
+                        }
+                        renderFrame();
+                    };
+                    state.logoImg.src = evt.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        const configControls = [
+            ...document.querySelectorAll('#tab-audio input[id], #tab-audio select[id], #tab-spectrum input[id], #tab-spectrum select[id], #tab-overlay input[id], #tab-overlay select[id]'),
+            document.getElementById('bg-scale')
+        ].filter(el => el && el.type !== 'file');
+
+        function readBlobAsDataUrl(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(reader.error || new Error('Background tidak dapat dibaca.'));
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        function fallbackMediaType(name, isVideo = false) {
+            const extension = name.split('.').pop().toLowerCase();
+            return ({ mp4: 'video/mp4', m4v: 'video/mp4', mov: 'video/quicktime', webm: 'video/webm', ogv: 'video/ogg', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif' })[extension] || (isVideo ? 'video/mp4' : 'image/png');
+        }
+
+        async function serializeMediaAsset(url, name, fallbackType) {
+            const blob = await (await fetch(url)).blob();
+            const type = /^(image|video)\//i.test(blob.type) ? blob.type : fallbackType;
+            return { name, type, data: await readBlobAsDataUrl(blob.slice(0, blob.size, type)) };
+        }
+
+        async function restoreMediaAsset(asset, kind) {
+            if (asset == null) return null;
+            const dataType = typeof asset.data === 'string' ? asset.data.match(/^data:([^;,]+)/i)?.[1] : null;
+            const validType = kind === 'background' ? /^(image|video)\//i.test(asset.type) : /^image\//i.test(asset.type);
+            if (typeof asset.name !== 'string' || !validType || dataType !== asset.type) {
+                throw new Error(`Data ${kind} di konfigurasi tidak valid.`);
+            }
+            const blob = await (await fetch(asset.data)).blob();
+            if (!blob.size) throw new Error(`File ${kind} di konfigurasi kosong.`);
+            return new File([blob], asset.name, { type: asset.type });
+        }
+
+        document.getElementById('btn-save-config')?.addEventListener('click', async () => {
+            try {
+                const controls = Object.fromEntries(configControls.map(el => [el.id, el.type === 'checkbox' ? el.checked : el.value]));
+                let background = null;
+                if (state.isBgLoaded) {
+                    const url = state.bgVideo ? state.bgVideoUrl : state.bgImg.src;
+                    const name = document.getElementById('bg-filename').innerText;
+                    const fallbackType = fallbackMediaType(name, !!state.bgVideo);
+                    background = await serializeMediaAsset(url, name, fallbackType);
+                }
+                const overlay = state.isOverlayLoaded
+                    ? await serializeMediaAsset(state.overlayImg.src, document.getElementById('overlay-filename').innerText, fallbackMediaType(document.getElementById('overlay-filename').innerText))
+                    : null;
+                const logo = state.isLogoLoaded
+                    ? await serializeMediaAsset(state.logoImg.src, document.getElementById('logo-filename').innerText, fallbackMediaType(document.getElementById('logo-filename').innerText))
+                    : null;
+
+                // shortcut: image/video assets are embedded as base64; use a streamed archive if large media exceeds browser memory.
+                const config = { format: 'loopmaster-config', version: 1, controls, background, overlay, logo };
+                const blob = new Blob([JSON.stringify(config)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'LoopMaster-configuration.json';
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+            } catch (error) {
+                alert(error.message || 'Gagal menyimpan konfigurasi.');
+            }
+        });
+
+        document.getElementById('btn-load-config')?.addEventListener('click', () => document.getElementById('input-config').click());
+        document.getElementById('input-config')?.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                const config = JSON.parse(await file.text());
+                if (config?.format !== 'loopmaster-config' || config.version !== 1 || !config.controls || typeof config.controls !== 'object' || Array.isArray(config.controls)) {
+                    throw new Error('Format konfigurasi tidak valid.');
+                }
+
+                const values = Object.entries(config.controls).flatMap(([id, value]) => {
+                    const el = configControls.find(control => control.id === id);
+                    if (!el) return [];
+                    if (el.type === 'checkbox' && typeof value !== 'boolean') throw new Error(`Nilai konfigurasi ${id} tidak valid.`);
+                    if (el.type === 'text' && (typeof value !== 'string' || (el.maxLength > 0 && value.length > el.maxLength))) throw new Error(`Nilai konfigurasi ${id} tidak valid.`);
+                    if (el.type === 'range' && (typeof value !== 'string' || !Number.isFinite(Number(value)) || Number(value) < Number(el.min) || Number(value) > Number(el.max))) throw new Error(`Nilai konfigurasi ${id} tidak valid.`);
+                    if (el.type === 'color' && (typeof value !== 'string' || !/^#[0-9a-f]{6}$/i.test(value))) throw new Error(`Nilai konfigurasi ${id} tidak valid.`);
+                    if (el.tagName === 'SELECT' && (typeof value !== 'string' || !Array.from(el.options).some(option => option.value === value))) throw new Error(`Nilai konfigurasi ${id} tidak valid.`);
+                    return [[el, value]];
+                });
+
+                const mediaFiles = {
+                    background: await restoreMediaAsset(config.background, 'background'),
+                    overlay: await restoreMediaAsset(config.overlay, 'overlay'),
+                    logo: await restoreMediaAsset(config.logo, 'logo')
+                };
+
+                if (state.isExporting) await stopExport(false);
+                state.audioElement.pause();
+                state.isPlaying = false;
+                if (state.animationFrame) cancelAnimationFrame(state.animationFrame);
+                state.animationFrame = null;
+                state.audioElement.onloadedmetadata = null;
+                state.audioElement.removeAttribute('src');
+                state.audioElement.load();
+                if (state.audioUrl) URL.revokeObjectURL(state.audioUrl);
+                state.audioUrl = null;
+                document.getElementById('input-audio').value = '';
+                document.getElementById('audio-filename').innerText = 'Klik untuk memilih file Audio (MP3, WAV, FLAC, M4A)';
+                document.getElementById('time-current').innerText = '00:00';
+                document.getElementById('time-total').innerText = '00:00';
+                document.getElementById('seek-bar').value = 0;
+                if (btnPlay) btnPlay.innerHTML = '<i class="fa-solid fa-play text-sm ml-0.5"></i>';
+                statusOverlay?.classList.remove('opacity-0');
+
+                document.getElementById('input-overlay').value = '';
+                state.overlayImg = new Image();
+                state.isOverlayLoaded = false;
+                document.getElementById('overlay-filename').innerText = 'Klik memilih Gambar Overlay (PNG / Green screen)';
+                document.getElementById('input-logo').value = '';
+                state.logoImg = new Image();
+                state.isLogoLoaded = false;
+                document.getElementById('logo-filename').innerText = 'Klik memilih Gambar Logo / Watermark';
+                clearBackground();
+
+                const preset = values.find(([el]) => el.id === 'audio-preset');
+                if (preset) {
+                    preset[0].value = preset[1];
+                    preset[0].dispatchEvent(new Event('change', { bubbles: true }));
+                }
+                values.forEach(([el, value]) => {
+                    if (el.id === 'audio-preset') return;
+                    if (el.type === 'checkbox') el.checked = value;
+                    else el.value = value;
+                    el.dispatchEvent(new Event(el.type === 'range' || el.type === 'color' ? 'input' : 'change', { bubbles: true }));
+                });
+
+                for (const [asset, inputId] of [['background', 'input-bg'], ['overlay', 'input-overlay'], ['logo', 'input-logo']]) {
+                    const mediaFile = mediaFiles[asset];
+                    if (!mediaFile) continue;
+                    const transfer = new DataTransfer();
+                    transfer.items.add(mediaFile);
+                    const mediaInput = document.getElementById(inputId);
+                    mediaInput.files = transfer.files;
+                    mediaInput.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+                renderFrame();
+            } catch (error) {
+                alert(error.message || 'Gagal memuat konfigurasi.');
+            } finally {
+                e.target.value = '';
+            }
+        });
+
+        // Toggle Greenscreen Listeners
+        document.getElementById('toggle-greenscreen')?.addEventListener('change', (e) => {
+            if (state.isOverlayLoaded && e.target.checked) {
+                applyChromaKey(state.overlayImg, state.chromaKeyCanvas, state.chromaKeyCtx);
+            }
+            renderFrame();
+        });
+
+        document.getElementById('toggle-logo-greenscreen')?.addEventListener('change', (e) => {
+            if (state.isLogoLoaded && e.target.checked) {
+                applyChromaKey(state.logoImg, state.logoChromaKeyCanvas, state.logoChromaKeyCtx);
+            }
+            renderFrame();
+        });
+
+        const btnPlay = document.getElementById('btn-play');
+        btnPlay?.addEventListener('click', () => {
+            if (!state.audioElement.src) return;
+            initAudioContext();
+            if (state.audioContext.state === 'suspended') state.audioContext.resume();
+
+            if (state.isPlaying) {
+                state.audioElement.pause();
+                state.isPlaying = false;
+                syncBackgroundVideo();
+                btnPlay.innerHTML = '<i class="fa-solid fa-play text-sm ml-0.5"></i>';
+            } else {
+                if (state.audioElement.ended) state.audioElement.currentTime = 0;
+                state.isPlaying = true;
+                syncBackgroundVideo(state.audioElement.currentTime === 0);
+                state.audioElement.play();
+                btnPlay.innerHTML = '<i class="fa-solid fa-pause text-sm"></i>';
+                renderLoop();
+            }
+        });
+
+        document.getElementById('btn-stop')?.addEventListener('click', () => {
+            state.audioElement.pause();
+            state.audioElement.currentTime = 0;
+            state.isPlaying = false;
+            syncBackgroundVideo(true);
+            if (btnPlay) btnPlay.innerHTML = '<i class="fa-solid fa-play text-sm ml-0.5"></i>';
+            document.getElementById('seek-bar').value = 0;
+            document.getElementById('time-current').innerText = '00:00';
+            renderFrame();
+        });
+
+        function updateSpeakerGain() {
+            if (state.speakerGainNode) {
+                const volume = parseFloat(document.getElementById('vol-control').value);
+                const listenDuringExport = document.getElementById('toggle-export-audio')?.checked;
+                state.speakerGainNode.gain.value = state.isMuted || (state.isExporting && !listenDuringExport) ? 0 : volume;
+            }
+            const muted = state.isMuted || parseFloat(document.getElementById('vol-control').value) === 0;
+            const btnMute = document.getElementById('btn-mute');
+            if (btnMute) btnMute.innerHTML = muted
+                ? '<i class="fa-solid fa-volume-xmark text-xs text-red-400"></i>'
+                : '<i class="fa-solid fa-volume-high text-xs"></i>';
+        }
+
+        document.getElementById('btn-mute')?.addEventListener('click', () => {
+            state.isMuted = !state.isMuted;
+            updateSpeakerGain();
+        });
+
+        document.getElementById('vol-control')?.addEventListener('input', updateSpeakerGain);
+        document.getElementById('toggle-export-audio')?.addEventListener('change', updateSpeakerGain);
+
+        document.getElementById('seek-bar')?.addEventListener('input', (e) => {
+            if (!state.audioElement.duration) return;
+            const targetTime = (parseFloat(e.target.value) / 100) * state.audioElement.duration;
+            state.audioElement.currentTime = targetTime;
+            syncBackgroundVideo();
+            document.getElementById('time-current').innerText = formatTime(targetTime);
+            renderFrame();
+        });
+
+        state.audioElement.addEventListener('timeupdate', () => {
+            if (!state.audioElement.duration) return;
+            const pct = (state.audioElement.currentTime / state.audioElement.duration) * 100;
+            document.getElementById('seek-bar').value = pct;
+            document.getElementById('time-current').innerText = formatTime(state.audioElement.currentTime);
+
+            // Sync Lyrics Index
+            if (state.lyricsList.length > 0) {
+                const curTime = state.audioElement.currentTime;
+                state.currentLyricIndex = state.lyricsList.findLastIndex(l => l.time !== null && l.time <= curTime);
+            }
+        });
+
+        state.audioElement.addEventListener('ended', () => {
+            if (state.isExporting) {
+                state.isPlaying = false;
+                if (btnPlay) btnPlay.innerHTML = '<i class="fa-solid fa-play text-sm ml-0.5"></i>';
+                stopExport();
+                return;
+            }
+            if (!state.isLooping) {
+                state.isPlaying = false;
+                state.bgVideo?.pause();
+                if (btnPlay) btnPlay.innerHTML = '<i class="fa-solid fa-play text-sm ml-0.5"></i>';
+            }
+        });
+
+        // Loop Toggle
+        document.getElementById('btn-loop')?.addEventListener('click', () => {
+            state.isLooping = !state.isLooping;
+            state.audioElement.loop = state.isLooping;
+            const btn = document.getElementById('btn-loop');
+            const txt = document.getElementById('loop-status-text');
+            if (state.isLooping) {
+                btn.className = "h-9 px-3 rounded-lg bg-blue-600/30 text-blue-300 border border-blue-500/50 flex items-center gap-1.5 transition-all shadow-lg shadow-blue-500/20 active:scale-95";
+                txt.innerText = "Loop ON";
+            } else {
+                btn.className = "h-9 px-3 rounded-lg bg-slate-800 text-gray-400 hover:bg-slate-700 flex items-center gap-1.5 transition-all border border-gray-700 active:scale-95";
+                txt.innerText = "Loop OFF";
+            }
+        });
+
+        bindSlider('bg-scale', 'val-bg-scale', 'x', v => parseFloat(v).toFixed(2));
+        bindSlider('spec-scale', 'val-spec-scale', 'x', v => parseFloat(v).toFixed(2));
+        bindSlider('spec-x', 'val-spec-x');
+        bindSlider('spec-y', 'val-spec-y');
+        bindSlider('spec-height', 'val-spec-height', '%');
+        bindSlider('spec-sensitivity', 'val-spec-sensitivity', 'x', v => parseFloat(v).toFixed(1));
+        bindSlider('spec-thickness', 'val-spec-thickness', 'px');
+        bindSlider('spec-opacity', 'val-spec-opacity', '%');
+        bindSlider('spec-density', 'val-spec-density', '', v => ['', 'Jarang', 'Sedang', 'Padat', 'Sangat Padat'][parseInt(v)]);
+        bindSlider('spec-start-frequency', 'val-spec-start-frequency', ' Hz', v => Number(v).toLocaleString('en-US'));
+        bindSlider('spec-end-frequency', 'val-spec-end-frequency', ' Hz', v => Number(v).toLocaleString('en-US'));
+        bindSlider('spec-bands', 'val-spec-bands');
+        bindSlider('spec-gradient', 'val-spec-gradient', '%');
+        bindSlider('spec-glow-threshold', 'val-spec-glow-threshold', '%');
+        bindSlider('spec-glow-radius', 'val-spec-glow-radius', 'px');
+        bindSlider('spec-glow-intensity', 'val-spec-glow-intensity', '%');
+        bindSlider('spec-pulse-sens', 'val-spec-pulse-sens', 'x', v => parseFloat(v).toFixed(1));
+        bindSlider('spec-pulse-zoom', 'val-spec-pulse-zoom', '%');
+        bindSlider('surround-speed', 'val-surround-speed', 'x', v => parseFloat(v).toFixed(1));
+        bindSlider('rot-speed', 'val-rot-speed', '°');
+        bindSlider('pulse-sens', 'val-pulse-sens', 'x', v => parseFloat(v).toFixed(1));
+        bindSlider('overlay-scale', 'val-overlay-scale', 'x', v => parseFloat(v).toFixed(2));
+        bindSlider('overlay-opacity', 'val-overlay-opacity', '%');
+        bindSlider('overlay-x', 'val-overlay-x');
+        bindSlider('overlay-y', 'val-overlay-y');
+        bindSlider('text-overlay-scale', 'val-text-overlay-scale', 'x', v => parseFloat(v).toFixed(2));
+        bindSlider('text-overlay-opacity', 'val-text-overlay-opacity', '%');
+        bindSlider('text-overlay-x', 'val-text-overlay-x');
+        bindSlider('text-overlay-y', 'val-text-overlay-y');
+        bindSlider('logo-scale', 'val-logo-scale', 'x', v => parseFloat(v).toFixed(2));
+        bindSlider('logo-opacity', 'val-logo-opacity', '%');
+        bindSlider('logo-x', 'val-logo-x');
+        bindSlider('logo-y', 'val-logo-y');
+        bindSlider('lyric-size', 'val-lyric-size', 'px');
+        bindSlider('lyric-y', 'val-lyric-y', '%');
+        bindSlider('lyric-opacity', 'val-lyric-opacity', '%');
+        bindSlider('comp-ratio', 'val-comp-ratio', ':1', v => parseFloat(v).toFixed(1));
+        bindSlider('master-gain', 'val-master-gain', ' dB', v => parseFloat(v).toFixed(1));
+
+        // Pulse Speed Label Mapping
+        document.getElementById('pulse-speed')?.addEventListener('input', (e) => {
+            const labels = ['', 'Sangat Lambat', 'Lambat', 'Normal', 'Cepat', 'Sangat Cepat'];
+            document.getElementById('val-pulse-speed').innerText = labels[parseInt(e.target.value)];
+            if (!state.isPlaying && !state.isExporting) renderFrame();
+        });
+        const presets = {
+            'flat': { sub: 0, bass: 0, mid: 0, highmid: 0, treble: 0, comp: 1, gain: 0 },
+            'deep-house': { sub: 6, bass: 4, mid: -1, highmid: 2, treble: 3, comp: 3, gain: 2 },
+            'lo-fi': { sub: 2, bass: 3, mid: 1, highmid: -3, treble: -5, comp: 2.5, gain: 1 },
+            'rnb': { sub: 5, bass: 4, mid: 0, highmid: 3, treble: 2, comp: 2, gain: 1 },
+            'reggae': { sub: 8, bass: 6, mid: -2, highmid: 1, treble: 2, comp: 2, gain: 2 },
+            'synthwave': { sub: 4, bass: 5, mid: 2, highmid: 3, treble: 4, comp: 4, gain: 2 },
+            'pop': { sub: 2, bass: 3, mid: 1, highmid: 4, treble: 4, comp: 3, gain: 2 },
+            'jazz': { sub: 1, bass: 2, mid: 1, highmid: 2, treble: 2, comp: 1.5, gain: 0 },
+            'bass-boost': { sub: 10, bass: 8, mid: -2, highmid: 0, treble: 1, comp: 3.5, gain: 3 },
+            'vocal': { sub: -4, bass: -2, mid: 4, highmid: 5, treble: 3, comp: 2.5, gain: 1 },
+            'electronic': { sub: 7, bass: 5, mid: 0, highmid: 4, treble: 5, comp: 4, gain: 3 },
+            'rock': { sub: 4, bass: 4, mid: 3, highmid: 4, treble: 3, comp: 3, gain: 2 },
+            'club': { sub: 8, bass: 6, mid: 1, highmid: 3, treble: 4, comp: 5, gain: 4 },
+            'dynamic': { sub: 3, bass: 3, mid: 0, highmid: 2, treble: 3, comp: 6, gain: 2 }
+        };
+
+        function setEQBand(band, value) {
+            const slider = document.getElementById(`eq-${band}`);
+            const label = document.getElementById(`val-${band}`);
+            if (slider) slider.value = value;
+            if (label) label.innerText = `${value > 0 ? '+' : ''}${value} dB`;
+            
+            const nodeMap = { sub: state.subEQ, bass: state.bassEQ, mid: state.midEQ, highmid: state.highmidEQ, treble: state.trebleEQ };
+            if (nodeMap[band] && nodeMap[band].gain) {
+                nodeMap[band].gain.value = value;
+            }
+        }
+
+        document.getElementById('audio-preset')?.addEventListener('change', (e) => {
+            const p = presets[e.target.value];
+            if (!p) return;
+            setEQBand('sub', p.sub);
+            setEQBand('bass', p.bass);
+            setEQBand('mid', p.mid);
+            setEQBand('highmid', p.highmid);
+            setEQBand('treble', p.treble);
+
+            document.getElementById('comp-ratio').value = p.comp;
+            document.getElementById('val-comp-ratio').innerText = `${p.comp.toFixed(1)}:1`;
+            if (state.compressorNode) state.compressorNode.ratio.value = p.comp;
+
+            document.getElementById('master-gain').value = p.gain;
+            document.getElementById('val-master-gain').innerText = `${p.gain.toFixed(1)} dB`;
+            if (state.masterGainNode) state.masterGainNode.gain.value = Math.pow(10, p.gain / 20);
+
+            if (!state.isPlaying && !state.isExporting) renderFrame();
+        });
+
+        ['sub', 'bass', 'mid', 'highmid', 'treble'].forEach(band => {
+            const el = document.getElementById(`eq-${band}`);
+            if (el) {
+                el.addEventListener('input', (e) => setEQBand(band, parseFloat(e.target.value)));
+            }
+        });
+
+        document.getElementById('comp-ratio')?.addEventListener('input', (e) => {
+            if (state.compressorNode) state.compressorNode.ratio.value = parseFloat(e.target.value);
+        });
+
+        document.getElementById('master-gain')?.addEventListener('input', (e) => {
+            if (state.masterGainNode) state.masterGainNode.gain.value = Math.pow(10, parseFloat(e.target.value) / 20);
+        });
+
+        document.getElementById('spec-type')?.addEventListener('change', () => {
+            if (!state.isPlaying && !state.isExporting) renderFrame();
+        });
+        document.getElementById('spec-gradient-mode')?.addEventListener('change', () => {
+            if (!state.isPlaying && !state.isExporting) renderFrame();
+        });
+        function keepFrequencyRange(changed) {
+            const start = document.getElementById('spec-start-frequency');
+            const end = document.getElementById('spec-end-frequency');
+            if (parseInt(start.value) >= parseInt(end.value)) {
+                if (changed === start) end.value = String(parseInt(start.value) + 10);
+                else start.value = String(parseInt(end.value) - 10);
+            }
+            document.getElementById('val-spec-start-frequency').innerText = `${Number(start.value).toLocaleString('en-US')} Hz`;
+            document.getElementById('val-spec-end-frequency').innerText = `${Number(end.value).toLocaleString('en-US')} Hz`;
+            if (!state.isPlaying && !state.isExporting) renderFrame();
+        }
+        document.getElementById('spec-start-frequency')?.addEventListener('input', e => keepFrequencyRange(e.target));
+        document.getElementById('spec-end-frequency')?.addEventListener('input', e => keepFrequencyRange(e.target));
+        document.getElementById('toggle-spectrum')?.addEventListener('change', (e) => {
+            if (!e.target.checked) state.currentSpecPulseScale = 0;
+            if (!state.isPlaying && !state.isExporting) renderFrame();
+        });
+        document.getElementById('toggle-spec-pulse')?.addEventListener('change', (e) => {
+            if (!e.target.checked && !state.isPlaying && !state.isExporting) state.currentSpecPulseScale = 0;
+            if (!state.isPlaying && !state.isExporting) renderFrame();
+        });
+        document.getElementById('toggle-spec-glow')?.addEventListener('change', () => {
+            if (!state.isPlaying && !state.isExporting) renderFrame();
+        });
+        ['spec-color1', 'spec-color2'].forEach(id => {
+            document.getElementById(id)?.addEventListener('input', () => {
+                if (!state.isPlaying && !state.isExporting) renderFrame();
+            });
+        });
+        document.getElementById('btn-swap-spec-colors')?.addEventListener('click', () => {
+            const primary = document.getElementById('spec-color1');
+            const secondary = document.getElementById('spec-color2');
+            [primary.value, secondary.value] = [secondary.value, primary.value];
+            if (!state.isPlaying && !state.isExporting) renderFrame();
+        });
+
+        // Tab Switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+                btn.classList.add('active');
+                const target = btn.getAttribute('data-target');
+                document.getElementById(target).classList.remove('hidden');
+            });
+        });
+
+        function getCanvasMousePos(e) {
+            if (!canvas) return { x: 0, y: 0 };
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
+            };
+        }
+
+        canvas?.addEventListener('pointerdown', (e) => {
+            if (!canvas || e.button !== 0) return;
+            state.dragTarget = null;
+            const pos = getCanvasMousePos(e);
+            const w = canvas.width, h = canvas.height;
+
+            // Calculate precise pixel centers for Logo and Overlay
+            const logoX = parseFloat(document.getElementById('logo-x').value);
+            const logoY = parseFloat(document.getElementById('logo-y').value);
+            const logoScale = parseFloat(document.getElementById('logo-scale').value);
+            const logoPx = w / 2 + (logoX / 100) * w;
+            const logoPy = h / 2 + (logoY / 100) * h;
+
+            const overlayX = parseFloat(document.getElementById('overlay-x').value);
+            const overlayY = parseFloat(document.getElementById('overlay-y').value);
+            const overlayScale = parseFloat(document.getElementById('overlay-scale').value);
+            const overlayPx = w / 2 + (overlayX / 100) * w;
+            const overlayPy = h / 2 + (overlayY / 100) * h;
+
+            const logoW = state.isLogoLoaded && state.logoImg.width ? (state.logoImg.width * logoScale) : 80;
+            const logoH = state.isLogoLoaded && state.logoImg.height ? (state.logoImg.height * logoScale) : 80;
+            const logoHalfW = Math.max(35, logoW / 2);
+            const logoHalfH = Math.max(35, logoH / 2);
+
+            const overlayW = state.isOverlayLoaded && state.overlayImg.width ? (state.overlayImg.width * overlayScale) : 200;
+            const overlayH = state.isOverlayLoaded && state.overlayImg.height ? (state.overlayImg.height * overlayScale) : 200;
+            const overlayHalfW = Math.max(50, overlayW / 2);
+            const overlayHalfH = Math.max(50, overlayH / 2);
+
+            const isLogoActive = state.isLogoLoaded && document.getElementById('toggle-logo').checked;
+            const isOverlayActive = state.isOverlayLoaded && document.getElementById('toggle-overlay').checked;
+            const textBounds = getTextOverlayBounds(w, h);
+            const hitText = textBounds && pos.x >= textBounds.left - 12 && pos.x <= textBounds.right + 12 && pos.y >= textBounds.top - 12 && pos.y <= textBounds.bottom + 12;
+
+            const hitLogo = isLogoActive && (Math.abs(pos.x - logoPx) <= logoHalfW) && (Math.abs(pos.y - logoPy) <= logoHalfH);
+            const hitOverlay = isOverlayActive && (Math.abs(pos.x - overlayPx) <= overlayHalfW) && (Math.abs(pos.y - overlayPy) <= overlayHalfH);
+
+            if (hitText) {
+                state.dragTarget = 'text';
+            } else if (hitLogo) {
+                state.dragTarget = 'logo';
+            } else if (hitOverlay) {
+                state.dragTarget = 'overlay';
+            } else {
+                const distLogo = Math.hypot(pos.x - logoPx, pos.y - logoPy);
+                const distOverlay = Math.hypot(pos.x - overlayPx, pos.y - overlayPy);
+                if (isLogoActive && distLogo < distOverlay && distLogo < 150) {
+                    state.dragTarget = 'logo';
+                } else if (isOverlayActive && distOverlay < 250) {
+                    state.dragTarget = 'overlay';
+                } else {
+                    state.isDragging = false;
+                }
+            }
+            state.isDragging = !!state.dragTarget;
+            if (state.isDragging) canvas.setPointerCapture(e.pointerId);
+        });
+
+        function handleDragMove(e) {
+            if (!state.isDragging || !state.dragTarget || !canvas) return;
+            if (e.cancelable) e.preventDefault();
+            const pos = getCanvasMousePos(e);
+            const w = canvas.width, h = canvas.height;
+
+            const pctX = Math.round(((pos.x - w / 2) / w) * 100);
+            const pctY = Math.round(((pos.y - h / 2) / h) * 100);
+            const clampedX = Math.max(-50, Math.min(50, pctX));
+            const clampedY = Math.max(-50, Math.min(50, pctY));
+
+            if (state.dragTarget === 'overlay') {
+                document.getElementById('overlay-x').value = clampedX;
+                document.getElementById('overlay-y').value = clampedY;
+                document.getElementById('val-overlay-x').innerText = clampedX;
+                document.getElementById('val-overlay-y').innerText = clampedY;
+            } else if (state.dragTarget === 'logo') {
+                document.getElementById('logo-x').value = clampedX;
+                document.getElementById('logo-y').value = clampedY;
+                document.getElementById('val-logo-x').innerText = clampedX;
+                document.getElementById('val-logo-y').innerText = clampedY;
+            } else if (state.dragTarget === 'text') {
+                document.getElementById('text-overlay-x').value = clampedX;
+                document.getElementById('text-overlay-y').value = clampedY;
+                document.getElementById('val-text-overlay-x').innerText = clampedX;
+                document.getElementById('val-text-overlay-y').innerText = clampedY;
+            }
+            if (!state.isPlaying && !state.isExporting) renderFrame();
+        }
+
+        function handleDragEnd() {
+            state.isDragging = false;
+            state.dragTarget = null;
+        }
+
+        canvas?.addEventListener('pointermove', handleDragMove);
+        canvas?.addEventListener('pointerup', handleDragEnd);
+        canvas?.addEventListener('pointercancel', handleDragEnd);
+
+        document.querySelectorAll('#toggle-text-overlay, #text-overlay-title, #text-overlay-subtitle, #text-overlay-case, #text-overlay-font-family, #text-overlay-font, #text-overlay-align, #text-overlay-color, #text-overlay-stroke-color').forEach(el => {
+            el.addEventListener('input', () => { if (!state.isPlaying && !state.isExporting) renderFrame(); });
+            el.addEventListener('change', () => { if (!state.isPlaying && !state.isExporting) renderFrame(); });
+        });
+        const textFontFamily = document.getElementById('text-overlay-font-family');
+        const lyricFont = document.getElementById('lyric-font');
+        [...textFontFamily.children].forEach(option => lyricFont.append(option.cloneNode(true)));
+        lyricFont.value = 'google:Inter';
+        const googleFontLoads = new Map();
+        function loadGoogleFont(family) {
+            if (!googleFontLoads.has(family)) {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = `https://fonts.googleapis.com/css2?${new URLSearchParams({ family, display: 'swap' })}`;
+                const loaded = new Promise(resolve => {
+                    link.onload = () => document.fonts.load(`400 16px "${family}"`).finally(resolve);
+                    link.onerror = resolve;
+                });
+                document.head.append(link);
+                googleFontLoads.set(family, loaded);
+            }
+            return googleFontLoads.get(family);
+        }
+        const updateTextFontControls = () => document.getElementById('text-overlay-local-font-container').classList.toggle('hidden', textFontFamily.value !== 'local');
+        textFontFamily.addEventListener('change', async () => {
+            updateTextFontControls();
+            if (textFontFamily.value.startsWith('google:')) await loadGoogleFont(textFontFamily.value.slice(7));
+            if (!state.isPlaying && !state.isExporting) renderFrame();
+        });
+        updateTextFontControls();
+
+        const lyricsInput = document.getElementById('lyrics-input');
+        const lyricsListContainer = document.getElementById('lyrics-list-container');
+        const nextLyricPreview = document.getElementById('next-lyric-preview');
+
+        function updateLyricsList() {
+            if (!lyricsInput) return;
+            const lines = lyricsInput.value.split('\n');
+            const oldList = state.lyricsList;
+
+            state.lyricsList = lines.map((line, idx) => {
+                const text = line.trim();
+                const oldItem = oldList[idx];
+                return {
+                    text: text,
+                    time: (oldItem && oldItem.text === text) ? oldItem.time : null
+                };
+            }).filter(item => item.text.length > 0);
+
+            renderLyricsTable();
+        }
+
+        function renderLyricsTable() {
+            if (!lyricsListContainer) return;
+            if (state.lyricsList.length === 0) {
+                lyricsListContainer.innerHTML = '<p class="text-[11px] text-gray-500 text-center py-2">Belum ada lirik disinkronisasi.</p>';
+                if (nextLyricPreview) nextLyricPreview.innerText = '-- Tidak ada lirik --';
+                return;
+            }
+
+            let html = '';
+            let nextFound = false;
+
+            state.lyricsList.forEach((item, idx) => {
+                const isSynced = item.time !== null;
+                const timeStr = isSynced ? formatTime(item.time) : '--:--';
+                if (!isSynced && !nextFound) {
+                    nextFound = true;
+                    if (nextLyricPreview) nextLyricPreview.innerText = item.text || '(Jeda Kosong)';
+                }
+
+                html += `
+                    <div class="flex items-center justify-between py-1 px-2 text-xs border-b border-gray-800 ${state.currentLyricIndex === idx ? 'bg-indigo-900/40 text-indigo-200 font-semibold' : 'text-gray-300'}">
+                        <div class="flex items-center gap-2 truncate flex-1 min-w-0 pr-2">
+                            <span class="font-mono text-[10px] text-gray-500 w-4">${idx + 1}.</span>
+                            <span class="truncate">${item.text || '<i class="text-gray-500">(Jeda Kosong)</i>'}</span>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0 font-mono text-[11px]">
+                            <span class="${isSynced ? 'text-indigo-400' : 'text-gray-600'}">${timeStr}</span>
+                            <button onclick="resetSingleLyric(${idx})" class="text-gray-500 hover:text-red-400 px-1" title="Reset Timestamp">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            if (!nextFound && nextLyricPreview) nextLyricPreview.innerText = '-- Semua Lirik Ter-Sync --';
+            lyricsListContainer.innerHTML = html;
+        }
+
+        window.resetSingleLyric = function(index) {
+            if (state.lyricsList[index]) {
+                state.lyricsList[index].time = null;
+                renderLyricsTable();
+            }
+        };
+
+        lyricsInput?.addEventListener('input', updateLyricsList);
+
+        document.getElementById('btn-stamp-lyric')?.addEventListener('click', () => {
+            if (!state.audioElement.src) return;
+            const curTime = state.audioElement.currentTime;
+            const nextItem = state.lyricsList.find(l => l.time === null);
+            if (nextItem) {
+                nextItem.time = curTime;
+                renderLyricsTable();
+            }
+        });
+
+        document.getElementById('btn-stamp-blank-lyric')?.addEventListener('click', () => {
+            if (!state.audioElement.src) return;
+            const curTime = state.audioElement.currentTime;
+            state.lyricsList.push({ text: '', time: curTime });
+            renderLyricsTable();
+        });
+
+        document.getElementById('btn-reset-all-lyrics')?.addEventListener('click', () => {
+            state.lyricsList.forEach(item => item.time = null);
+            renderLyricsTable();
+        });
+
+        const updateLyricFont = async () => {
+            const customContainer = document.getElementById('custom-font-container');
+            customContainer?.classList.toggle('hidden', lyricFont.value !== 'local');
+            if (lyricFont.value.startsWith('google:')) await loadGoogleFont(lyricFont.value.slice(7));
+            if (!state.isPlaying && !state.isExporting) renderFrame();
+        };
+        lyricFont.addEventListener('change', updateLyricFont);
+        document.getElementById('lyric-custom-font')?.addEventListener('input', () => { if (!state.isPlaying && !state.isExporting) renderFrame(); });
+        updateLyricFont();
+
+        function renderLoop() {
+            renderFrame();
+            updatePerformanceStats();
+            if (state.isExporting && !state.exportFramePending) {
+                const timestamp = state.audioElement.currentTime;
+                if (state.exportFrameIndex === 0 || timestamp - state.exportLastFrameTime >= 1 / state.exportFps) {
+                    const frameTime = state.exportFrameIndex === 0 ? 0 : timestamp;
+                    state.exportFramePending = true;
+                    state.exportFramePromise = state.exportVideoSource.add(frameTime, 1 / state.exportFps)
+                        .then(() => {
+                            state.exportFrameIndex++;
+                            state.exportLastFrameTime = frameTime;
+                            const progress = Math.min(99, Math.floor((frameTime / state.exportDuration) * 100));
+                            document.getElementById('export-progress-bar').style.width = `${progress}%`;
+                            document.getElementById('export-progress-text').innerText = `${progress}%`;
+                        })
+                        .catch(error => {
+                            state.exportError = error;
+                            setTimeout(() => stopExport(false, error), 0);
+                        })
+                        .finally(() => { state.exportFramePending = false; });
+                }
+            }
+            if (state.isExporting && (state.audioElement.ended || state.audioElement.currentTime >= state.exportDuration)) {
+                stopExport();
+                return;
+            }
+            if (state.isPlaying || state.isExporting) {
+                state.animationFrame = requestAnimationFrame(renderLoop);
+            }
+        }
+
+        function updatePerformanceStats() {
+            const now = performance.now();
+            state.frameCount++;
+            if (now - state.lastFrameTime >= 1000) {
+                state.fps = state.frameCount;
+                state.frameCount = 0;
+                state.lastFrameTime = now;
+                
+                const perfFps = document.getElementById('perf-fps');
+                if (perfFps) perfFps.innerText = state.fps;
+                
+                if (window.performance && window.performance.memory) {
+                    const usedMB = (window.performance.memory.usedJSHeapSize / (1024 * 1024)).toFixed(1);
+                    document.getElementById('perf-ram').innerText = usedMB;
+                } else if (canvas) {
+                    const estRAM = (35 + (canvas.width * canvas.height * 4) / (1024 * 1024)).toFixed(1);
+                    document.getElementById('perf-ram').innerText = estRAM;
+                }
+
+                const cpuPct = Math.min(100, Math.round((1000 / Math.max(1, state.fps) / 16.6) * 15 + Math.random() * 5));
+                const gpuPct = canvas ? Math.min(100, Math.round(((canvas.width * canvas.height) / (1920 * 1080)) * 25 + Math.random() * 8)) : 10;
+
+                document.getElementById('perf-cpu-val').innerText = `${cpuPct}%`;
+                document.getElementById('perf-cpu-bar').style.width = `${cpuPct}%`;
+                
+                document.getElementById('perf-gpu-val').innerText = `${gpuPct}%`;
+                document.getElementById('perf-gpu-bar').style.width = `${gpuPct}%`;
+            }
+        }
+
+        function renderFrame() {
+            if (!canvas || !ctx) return;
+            const w = canvas.width;
+            const h = canvas.height;
+
+            // HD Surround Softened Panning Logic
+            if (document.getElementById('toggle-surround')?.checked && state.pannerNode && state.isPlaying) {
+                const speed = parseFloat(document.getElementById('surround-speed').value);
+                state.surroundAngle += 0.008 * speed;
+                state.pannerNode.pan.value = Math.sin(state.surroundAngle) * 0.65;
+            } else if (state.pannerNode) {
+                state.pannerNode.pan.value = 0;
+            }
+
+            // Normalizer / Limiter Threshold
+            if (state.compressorNode) {
+                const normalize = document.getElementById('toggle-normalize')?.checked;
+                state.compressorNode.threshold.value = normalize ? -18 : -24;
+                state.compressorNode.knee.value = normalize ? 12 : 30;
+            }
+
+            // 1. Draw Background Image
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, w, h);
+            if (state.isBgLoaded) {
+                const background = state.bgVideo || state.bgImg;
+                const backgroundWidth = state.bgVideo ? state.bgVideo.videoWidth : state.bgImg.width;
+                const backgroundHeight = state.bgVideo ? state.bgVideo.videoHeight : state.bgImg.height;
+                const imgRatio = backgroundWidth / backgroundHeight;
+                const canvasRatio = w / h;
+                let drawW, drawH;
+
+                if (imgRatio > canvasRatio) {
+                    drawH = h;
+                    drawW = h * imgRatio;
+                } else {
+                    drawW = w;
+                    drawH = w / imgRatio;
+                }
+
+                drawW *= parseFloat(document.getElementById('bg-scale').value);
+                drawH *= parseFloat(document.getElementById('bg-scale').value);
+
+                ctx.drawImage(background, (w - drawW) / 2, (h - drawH) / 2, drawW, drawH);
+            }
+
+            // Audio Frequency Analysis
+            let audioData = new Uint8Array(0);
+            let avgVolume = 0;
+            let bassVolume = 0;
+
+            if (state.analyser) {
+                const bufferLength = state.analyser.frequencyBinCount;
+                audioData = new Uint8Array(bufferLength);
+                state.analyser.getByteFrequencyData(audioData);
+
+                let sum = 0;
+                for (let i = 0; i < bufferLength; i++) sum += audioData[i];
+                avgVolume = sum / bufferLength;
+
+                // Sub-bass & Kick drum low-frequency band
+                let bassSum = 0;
+                const bassBins = Math.min(16, Math.floor(bufferLength * 0.05));
+                for (let i = 0; i < bassBins; i++) bassSum += audioData[i];
+                bassVolume = bassSum / bassBins;
+
+                // Update Loudness Meter Bar
+                const rms = Math.sqrt(audioData.reduce((acc, val) => acc + (val * val), 0) / bufferLength);
+                const db = rms > 0 ? 20 * Math.log10(rms / 255) : -Infinity;
+                const loudnessPct = Math.min(100, Math.max(0, (db + 60) * (100 / 60)));
+
+                const loudnessBar = document.getElementById('loudness-meter-bar');
+                if (loudnessBar) loudnessBar.style.width = `${loudnessPct}%`;
+                const valDb = document.getElementById('val-loudness-db');
+                if (valDb) valDb.innerText = isFinite(db) ? `${db.toFixed(1)} dB` : '-inf dB';
+            }
+
+            // 2. Draw Audio Spectrum
+            if (document.getElementById('toggle-spectrum')?.checked && audioData.length > 0) {
+                drawSpectrum(w, h, audioData, avgVolume);
+            }
+
+            // 3. Draw Overlay Image
+            if (document.getElementById('toggle-overlay')?.checked && state.isOverlayLoaded) {
+                drawOverlay(w, h, avgVolume, bassVolume);
+            }
+
+            // 4. Draw Logo Watermark
+            if (document.getElementById('toggle-logo')?.checked && state.isLogoLoaded) {
+                drawLogo(w, h);
+            }
+
+            if (document.getElementById('toggle-text-overlay')?.checked) drawTextOverlay(w, h);
+
+            // 5. Draw Lyrics
+            if (document.getElementById('toggle-lyrics')?.checked && state.lyricsList.length > 0) {
+                drawLyrics(w, h);
+            }
+        }
+
+        function drawSpectrum(w, h, data, avgVolume) {
+            const type = document.getElementById('spec-type').value;
+            let scale = parseFloat(document.getElementById('spec-scale').value);
+            const specX = (parseFloat(document.getElementById('spec-x').value) / 100) * w;
+            const specY = (parseFloat(document.getElementById('spec-y').value) / 100) * h;
+            const maxHeight = (parseFloat(document.getElementById('spec-height').value) / 100) * (h / 2);
+            const thickness = parseInt(document.getElementById('spec-thickness').value);
+            const opacity = parseFloat(document.getElementById('spec-opacity').value) / 100;
+            const densityVal = parseInt(document.getElementById('spec-density').value);
+            const gradientSpread = parseFloat(document.getElementById('spec-gradient').value) / 100;
+            const gradientMode = document.getElementById('spec-gradient-mode').value;
+            const color1 = document.getElementById('spec-color1').value;
+            const color2 = document.getElementById('spec-color2').value;
+            const glowEnabled = document.getElementById('toggle-spec-glow').checked;
+            const glowThreshold = parseFloat(document.getElementById('spec-glow-threshold').value) / 100;
+            const glowRadius = parseFloat(document.getElementById('spec-glow-radius').value);
+            const glowIntensity = parseFloat(document.getElementById('spec-glow-intensity').value) / 100;
+
+            const sensitivity = parseFloat(document.getElementById('spec-sensitivity').value);
+            const samplesPerBand = [1, 2, 4, 8][densityVal - 1];
+            const bandCount = parseInt(document.getElementById('spec-bands').value);
+            const binHz = (state.audioContext?.sampleRate || 44100) / (state.analyser?.fftSize || 2048);
+            const startFrequency = parseFloat(document.getElementById('spec-start-frequency').value);
+            const endFrequency = Math.max(startFrequency + binHz, Math.min(
+                parseFloat(document.getElementById('spec-end-frequency').value),
+                binHz * data.length
+            ));
+            const dataSubset = [];
+            for (let band = 0; band < bandCount; band++) {
+                const lowFrequency = startFrequency * Math.pow(endFrequency / startFrequency, band / bandCount);
+                const highFrequency = startFrequency * Math.pow(endFrequency / startFrequency, (band + 1) / bandCount);
+                const firstBin = Math.min(data.length - 1, Math.max(1, Math.floor(lowFrequency / binHz)));
+                const lastBin = Math.min(data.length, Math.max(firstBin + 1, Math.ceil(highFrequency / binHz)));
+                const binCount = lastBin - firstBin;
+                let bandValue = 0;
+                for (let sample = 0; sample < samplesPerBand; sample++) {
+                    const bin = firstBin + Math.min(binCount - 1, Math.floor((sample + 0.5) * binCount / samplesPerBand));
+                    bandValue = Math.max(bandValue, data[bin]);
+                }
+                dataSubset.push(Math.min(255, bandValue * sensitivity));
+            }
+            const len = dataSubset.length;
+            const spectrumLevel = Math.max(...dataSubset) / 255;
+            const pulseBandCount = Math.max(1, Math.ceil(len * 0.25));
+            const pulseLevel = Math.max(...dataSubset.slice(0, pulseBandCount)) / 255;
+            const pulseEnabled = document.getElementById('toggle-spec-pulse').checked;
+            const pulseSensitivity = parseFloat(document.getElementById('spec-pulse-sens').value);
+            const pulseDepth = parseInt(document.getElementById('spec-pulse-zoom').value) / 100;
+            const targetSpecPulse = pulseEnabled ? pulseLevel * pulseDepth * pulseSensitivity : 0;
+            const pulseSmoothing = targetSpecPulse > state.currentSpecPulseScale ? 0.45 : 0.12;
+            state.currentSpecPulseScale += (targetSpecPulse - state.currentSpecPulseScale) * pulseSmoothing;
+            scale += state.currentSpecPulseScale;
+            const channel1 = [1, 3, 5].map(i => parseInt(color1.slice(i, i + 2), 16));
+            const channel2 = [1, 3, 5].map(i => parseInt(color2.slice(i, i + 2), 16));
+            const glowColor = `rgba(${channel1.map((value, i) => Math.round(value + (channel2[i] - value) * spectrumLevel)).join(',')},${glowIntensity})`;
+            const glowActive = glowEnabled && spectrumLevel >= glowThreshold;
+            const isClone = document.getElementById('toggle-spec-clone').checked;
+            const cloneFlipMode = document.getElementById('spec-clone-flip').value;
+            const renderPasses = isClone ? 2 : 1;
+
+            for (let pass = 0; pass < renderPasses; pass++) {
+                ctx.save();
+                ctx.globalAlpha = pass === 1 ? opacity * 0.55 : opacity;
+                ctx.lineJoin = 'round';
+                ctx.lineCap = 'round';
+                ctx.shadowColor = glowColor;
+                ctx.shadowBlur = glowActive ? glowRadius * scale : 0;
+
+                ctx.translate(w / 2 + specX, h / 2 + specY);
+
+                if (pass === 1) {
+                    if (cloneFlipMode === 'vertical') ctx.scale(1, -1);
+                    else if (cloneFlipMode === 'horizontal') ctx.scale(-1, 1);
+                    else if (cloneFlipMode === 'dual') ctx.scale(-1, -1);
+                }
+
+                ctx.translate(-w / 2, -h / 2);
+
+                const grad = gradientMode === 'horizontal'
+                    ? ctx.createLinearGradient(0, h / 2, w, h / 2)
+                    : gradientMode === 'circular'
+                        ? ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.hypot(w, h) / 2)
+                        : ctx.createLinearGradient(w / 2, h, w / 2, 0);
+                grad.addColorStop(0, color1);
+                grad.addColorStop(gradientSpread, color2);
+                grad.addColorStop(1, color2);
+                ctx.fillStyle = grad;
+                ctx.strokeStyle = grad;
+                ctx.lineWidth = thickness * scale;
+
+                if (type === 'bar') {
+                    const barW = Math.max(1, ((w / len) * 0.8) * (thickness / 3));
+                    const spacing = (w / len) - barW;
+                    let x = 0;
+                    for (let i = 0; i < len; i++) {
+                        const barH = (dataSubset[i] / 255) * maxHeight * scale;
+                        if (barH > 0) {
+                            const radius = Math.min(barW / 2, barH / 2, 6 * scale);
+                            ctx.beginPath();
+                            ctx.roundRect(x, h - barH, barW, barH, [radius, radius, 0, 0]);
+                            ctx.fill();
+                        }
+                        x += barW + spacing;
+                    }
+                } else if (type === 'line') {
+                    ctx.beginPath();
+                    const sliceW = w / len;
+                    let x = 0;
+                    for (let i = 0; i < len; i++) {
+                        const y = h - ((dataSubset[i] / 255) * maxHeight * scale);
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                        x += sliceW;
+                    }
+                    ctx.stroke();
+                } else if (type === 'dot') {
+                    const sliceW = w / len;
+                    for (let i = 0; i < len; i++) {
+                        const v = dataSubset[i] / 255;
+                        const radius = (v * 12 + thickness) * scale;
+                        const x = i * sliceW + sliceW / 2;
+                        const y = h - (v * maxHeight * scale);
+                        ctx.beginPath();
+                        ctx.arc(x, y, radius, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                } else if (type === 'circle') {
+                    const cx = w / 2, cy = h / 2, radius = 140 * scale;
+                    ctx.beginPath();
+                    for (let i = 0; i <= len; i++) {
+                        const index = i === len ? 0 : i;
+                        const barH = (dataSubset[index] / 255) * maxHeight * scale;
+                        const rads = (Math.PI * 2 * i) / len;
+                        const x = cx + Math.cos(rads) * (radius + barH);
+                        const y = cy + Math.sin(rads) * (radius + barH);
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.stroke();
+                } else if (type === 'radial') {
+                    const cx = w / 2, cy = h / 2, radius = 100 * scale;
+                    for (let i = 0; i < len; i++) {
+                        const barH = (dataSubset[i] / 255) * maxHeight * scale;
+                        const rads = (Math.PI * 2 * i) / len;
+                        const x1 = cx + Math.cos(rads) * radius;
+                        const y1 = cy + Math.sin(rads) * radius;
+                        const x2 = cx + Math.cos(rads) * (radius + barH);
+                        const y2 = cy + Math.sin(rads) * (radius + barH);
+                        ctx.beginPath();
+                        ctx.moveTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                        ctx.stroke();
+                    }
+                } else if (type === 'particle') {
+                    if (state.particles.length < 60) {
+                        state.particles.push({
+                            x: Math.random() * w,
+                            y: h,
+                            vx: (Math.random() - 0.5) * 3,
+                            vy: -Math.random() * 5 - 2,
+                            size: Math.random() * 6 + 2
+                        });
+                    }
+                    state.particles.forEach((p, idx) => {
+                        const amp = (dataSubset[idx % len] || 0) / 255;
+                        p.x += p.vx;
+                        p.y += p.vy - (amp * 4);
+                        if (p.y < 0) p.y = h;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, (p.size + thickness / 2) * scale, 0, Math.PI * 2);
+                        ctx.fill();
+                    });
+                } else if (type === 'ribbon') {
+                    ctx.beginPath();
+                    for (let i = 0; i < len; i++) {
+                        const v = (dataSubset[i] / 255) * maxHeight * scale;
+                        const x = w * (i / len);
+                        const y = h / 2 + Math.sin(i * 0.2 + Date.now() * 0.003) * v;
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.stroke();
+                } else if (type === 'spiral') {
+                    const cx = w / 2, cy = h / 2;
+                    ctx.beginPath();
+                    for (let i = 0; i < len; i++) {
+                        const v = (dataSubset[i] / 255) * maxHeight * scale;
+                        const rads = i * 0.15;
+                        const radius = (i * 3 + v) * scale;
+                        const x = cx + Math.cos(rads) * radius;
+                        const y = cy + Math.sin(rads) * radius;
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.stroke();
+                } else if (type === 'tunnel') {
+                    const cx = w / 2, cy = h / 2;
+                    for (let i = 0; i < 8; i++) {
+                        const v = (dataSubset[(i * 4) % len] / 255) * maxHeight * scale;
+                        const r = (i * 35 + v) * scale;
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, Math.max(1, r), 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                } else if (type === '3d') {
+                    const rows = 5, cols = Math.floor(len / rows);
+                    const barW = (12 + thickness) * scale;
+                    for (let r = 0; r < rows; r++) {
+                        for (let c = 0; c < cols; c++) {
+                            const val = (dataSubset[r * cols + c] / 255) * maxHeight * scale;
+                            const isoX = (w / 2) + (c - cols / 2) * barW * 1.2 + (r * 10);
+                            const isoY = (h / 2) + (r * 15) - val;
+                            if (val > 0) {
+                                const radius = Math.min(barW / 2, val / 2, 6 * scale);
+                                ctx.beginPath();
+                                ctx.roundRect(isoX, isoY, barW, val, [radius, radius, 0, 0]);
+                                ctx.fill();
+                            }
+                        }
+                    }
+                } else if (type === 'neon') {
+                    ctx.shadowColor = glowEnabled ? (glowActive ? glowColor : 'transparent') : color2;
+                    ctx.shadowBlur = glowEnabled ? (glowActive ? glowRadius * scale : 0) : 15;
+                    ctx.beginPath();
+                    const sliceW = w / len;
+                    for (let i = 0; i < len; i++) {
+                        const y = h / 2 + (Math.sin(i) * (dataSubset[i] / 255) * maxHeight * scale);
+                        if (i === 0) ctx.moveTo(0, y);
+                        else ctx.lineTo(i * sliceW, y);
+                    }
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                } else if (type === 'mesh') {
+                    const sliceW = w / len;
+                    for (let i = 0; i < len; i += 2) {
+                        const v = (dataSubset[i] / 255) * maxHeight * scale;
+                        if (v > 0) {
+                            ctx.beginPath();
+                            ctx.roundRect(i * sliceW, h / 2 - v / 2, sliceW * 2, v, Math.min(thickness * scale, v / 2));
+                            ctx.stroke();
+                        }
+                    }
+                } else if (type === 'wireframe') {
+                    const waveCount = 8;
+                    const phase = Date.now() * 0.002;
+                    const sliceW = w / (len - 1);
+                    const baseAlpha = ctx.globalAlpha;
+                    for (let row = 0; row < waveCount; row++) {
+                        const depth = row / (waveCount - 1);
+                        const waveHeight = maxHeight * scale * (0.85 - depth * 0.6);
+                        const baseY = h * (0.5 + depth * 0.06);
+                        ctx.globalAlpha = baseAlpha * (1 - depth * 0.55);
+                        ctx.beginPath();
+                        for (let i = 0; i < len; i++) {
+                            const x = i * sliceW;
+                            const audioWave = (dataSubset[i] / 255) * waveHeight;
+                            const ripple = Math.sin(i * 0.09 + phase - row * 0.5) * waveHeight * 0.08;
+                            const y = baseY - audioWave + ripple;
+                            if (i === 0) ctx.moveTo(x, y);
+                            else ctx.lineTo(x, y);
+                        }
+                        ctx.stroke();
+                    }
+                    ctx.globalAlpha = baseAlpha;
+                } else if (type === 'wireframe-mesh-wave') {
+                    const rows = 10;
+                    const phase = Date.now() * 0.002;
+                    const pointAt = (row, index) => {
+                        const depth = row / (rows - 1);
+                        const x = w / 2 + (index / (len - 1) - 0.5) * w * (0.45 + depth * 0.55);
+                        const amplitude = (dataSubset[index] / 255) * maxHeight * scale * (0.25 + depth * 0.75);
+                        const wave = Math.sin(index * 0.16 + phase - row * 0.45) * maxHeight * scale * 0.12;
+                        return { x, y: h * (0.4 + depth * 0.32) - amplitude + wave };
+                    };
+
+                    for (let row = 0; row < rows; row++) {
+                        ctx.beginPath();
+                        for (let i = 0; i < len; i++) {
+                            const point = pointAt(row, i);
+                            if (i === 0) ctx.moveTo(point.x, point.y);
+                            else ctx.lineTo(point.x, point.y);
+                        }
+                        ctx.stroke();
+                    }
+                    for (let i = 0; i < len; i += 3) {
+                        ctx.beginPath();
+                        for (let row = 0; row < rows; row++) {
+                            const point = pointAt(row, i);
+                            if (row === 0) ctx.moveTo(point.x, point.y);
+                            else ctx.lineTo(point.x, point.y);
+                        }
+                        ctx.stroke();
+                    }
+                } else if (type === 'fluid') {
+                    ctx.beginPath();
+                    ctx.moveTo(0, h);
+                    const sliceW = w / len;
+                    for (let i = 0; i < len - 1; i++) {
+                        const x = i * sliceW;
+                        const y = h - (dataSubset[i] / 255) * maxHeight * scale;
+                        const nextX = (i + 1) * sliceW;
+                        const nextY = h - (dataSubset[i + 1] / 255) * maxHeight * scale;
+                        const xc = (x + nextX) / 2;
+                        const yc = (y + nextY) / 2;
+                        ctx.quadraticCurveTo(x, y, xc, yc);
+                    }
+                    ctx.lineTo(w, h);
+                    ctx.closePath();
+                    ctx.fill();
+                } else if (type === 'glow') {
+                    const cx = w / 2, cy = h / 2;
+                    let sumVal = 0;
+                    for (let i = 0; i < len; i++) sumVal += dataSubset[i];
+                    const avgAmp = (sumVal / len) / 255;
+                    const r = (100 + avgAmp * maxHeight) * scale;
+                    ctx.shadowColor = glowEnabled ? (glowActive ? glowColor : 'transparent') : color1;
+                    ctx.shadowBlur = glowEnabled ? (glowActive ? glowRadius * scale : 0) : 30;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, Math.max(10, r), 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+
+                ctx.restore();
+            }
+        }
+
+        function drawOverlay(w, h, avgVolume, bassVolume = 0) {
+            if (!state.isOverlayLoaded) return;
+
+            const rotMode = document.getElementById('rot-mode').value;
+            let rotVal = parseFloat(document.getElementById('rot-speed').value);
+            const scale = parseFloat(document.getElementById('overlay-scale').value);
+            const opacity = parseFloat(document.getElementById('overlay-opacity').value) / 100;
+            const offsetX = (parseFloat(document.getElementById('overlay-x').value) / 100) * w;
+            const offsetY = (parseFloat(document.getElementById('overlay-y').value) / 100) * h;
+
+            if (rotMode === 'auto' && state.isPlaying) {
+                state.overlayAngle += (rotVal / 100) * 0.02;
+            } else if (rotMode === 'audio' && state.isPlaying) {
+                state.overlayAngle += (avgVolume / 255) * (rotVal / 100) * 0.03;
+            } else if (rotMode === 'manual' || rotMode === 'none') {
+                state.overlayAngle = rotVal * (Math.PI / 180);
+            }
+
+            let pulseScale = 1;
+            if (document.getElementById('toggle-pulse')?.checked) {
+                const sens = parseFloat(document.getElementById('pulse-sens').value);
+                const speedVal = parseInt(document.getElementById('pulse-speed').value);
+                const bassNorm = Math.pow(bassVolume / 255, 1.8);
+                const targetPulse = bassNorm * 0.75 * sens;
+
+                if (targetPulse > state.currentPulseScale) {
+                    state.currentPulseScale += (targetPulse - state.currentPulseScale) * 0.7;
+                } else {
+                    const decayFactor = [0.05, 0.12, 0.22, 0.38, 0.55][speedVal - 1];
+                    state.currentPulseScale += (targetPulse - state.currentPulseScale) * decayFactor;
+                }
+                pulseScale += state.currentPulseScale;
+            }
+
+            ctx.save();
+            ctx.translate(w / 2 + offsetX, h / 2 + offsetY);
+            ctx.rotate(state.overlayAngle);
+            ctx.scale(scale * pulseScale, scale * pulseScale);
+            ctx.globalAlpha = opacity;
+
+            const drawW = state.overlayImg.width;
+            const drawH = state.overlayImg.height;
+
+            if (document.getElementById('toggle-greenscreen')?.checked && state.chromaKeyCanvas) {
+                ctx.drawImage(state.chromaKeyCanvas, -drawW / 2, -drawH / 2);
+            } else {
+                ctx.drawImage(state.overlayImg, -drawW / 2, -drawH / 2);
+            }
+
+            ctx.restore();
+        }
+
+        function drawLogo(w, h) {
+            if (!state.isLogoLoaded) return;
+
+            const scale = parseFloat(document.getElementById('logo-scale').value);
+            const opacity = parseFloat(document.getElementById('logo-opacity').value) / 100;
+            const offsetX = (parseFloat(document.getElementById('logo-x').value) / 100) * w;
+            const offsetY = (parseFloat(document.getElementById('logo-y').value) / 100) * h;
+
+            ctx.save();
+            ctx.translate(w / 2 + offsetX, h / 2 + offsetY);
+            ctx.scale(scale, scale);
+            ctx.globalAlpha = opacity;
+
+            const drawW = state.logoImg.width;
+            const drawH = state.logoImg.height;
+
+            if (document.getElementById('toggle-logo-greenscreen')?.checked && state.logoChromaKeyCanvas) {
+                ctx.drawImage(state.logoChromaKeyCanvas, -drawW / 2, -drawH / 2);
+            } else {
+                ctx.drawImage(state.logoImg, -drawW / 2, -drawH / 2);
+            }
+
+            ctx.restore();
+        }
+
+        function getTextOverlayBounds(w, h) {
+            if (!document.getElementById('toggle-text-overlay')?.checked) return null;
+            const textCase = document.getElementById('text-overlay-case').value;
+            const transformCase = text => {
+                if (textCase === 'uppercase') return text.toLocaleUpperCase();
+                if (textCase === 'lowercase') return text.toLocaleLowerCase();
+                if (textCase === 'capitalize') return text.split(/(\s+)/).map(word => /^\s+$/.test(word) ? word : word.charAt(0).toLocaleUpperCase() + word.slice(1).toLocaleLowerCase()).join('');
+                return text;
+            };
+            const title = transformCase(document.getElementById('text-overlay-title').value.trim());
+            const subtitle = transformCase(document.getElementById('text-overlay-subtitle').value.trim());
+            if (!title && !subtitle) return null;
+
+            const scale = parseFloat(document.getElementById('text-overlay-scale').value);
+            const fontFamily = document.getElementById('text-overlay-font-family').value;
+            const font = fontFamily.startsWith('google:') ? fontFamily.slice(7) : fontFamily === 'local' ? (document.getElementById('text-overlay-font').value.trim() || 'Arial').replace(/["\\]/g, '').slice(0, 80) : fontFamily;
+            const fontCss = ['system-ui', 'serif', 'sans-serif', 'monospace', 'cursive', 'fantasy'].includes(font) ? font : `"${font}"`;
+            const align = document.getElementById('text-overlay-align').value;
+            const x = w / 2 + parseFloat(document.getElementById('text-overlay-x').value) / 100 * w;
+            const centerY = h / 2 + parseFloat(document.getElementById('text-overlay-y').value) / 100 * h;
+            const titleSize = 56 * scale, subtitleSize = 30 * scale, gap = 8 * scale;
+            const totalHeight = (title ? titleSize * 1.2 : 0) + (subtitle ? subtitleSize * 1.2 : 0) + (title && subtitle ? gap : 0);
+            const top = centerY - totalHeight / 2;
+            const titleY = title ? top + titleSize : null;
+            const subtitleY = subtitle ? top + (title ? titleSize * 1.2 + gap : 0) + subtitleSize : null;
+
+            ctx.save();
+            ctx.textAlign = align;
+            ctx.font = `bold ${titleSize}px ${fontCss}, sans-serif`;
+            const titleWidth = title ? ctx.measureText(title).width : 0;
+            ctx.font = `500 ${subtitleSize}px ${fontCss}, sans-serif`;
+            const subtitleWidth = subtitle ? ctx.measureText(subtitle).width : 0;
+            ctx.restore();
+
+            const halfWidth = Math.max(titleWidth, subtitleWidth) / 2;
+            const maxWidth = Math.max(titleWidth, subtitleWidth);
+            const left = align === 'left' ? x : align === 'right' ? x - maxWidth : x - halfWidth;
+            const right = align === 'left' ? x + maxWidth : align === 'right' ? x : x + halfWidth;
+            return { title, subtitle, fontCss, align, x, top, bottom: top + totalHeight, titleSize, subtitleSize, titleY, subtitleY, left, right };
+        }
+
+        function drawTextOverlay(w, h) {
+            const text = getTextOverlayBounds(w, h);
+            if (!text) return;
+            ctx.save();
+            ctx.textAlign = text.align;
+            ctx.textBaseline = 'alphabetic';
+            ctx.globalAlpha = parseFloat(document.getElementById('text-overlay-opacity').value) / 100;
+            ctx.fillStyle = document.getElementById('text-overlay-color').value;
+            ctx.strokeStyle = document.getElementById('text-overlay-stroke-color').value;
+            ctx.lineJoin = 'round';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+            ctx.shadowBlur = Math.max(4, text.titleSize * 0.12);
+            if (text.title) {
+                ctx.font = `bold ${text.titleSize}px ${text.fontCss}, sans-serif`;
+                ctx.lineWidth = Math.max(2, text.titleSize * 0.1);
+                ctx.strokeText(text.title, text.x, text.titleY, w * 0.9);
+                ctx.fillText(text.title, text.x, text.titleY, w * 0.9);
+            }
+            if (text.subtitle) {
+                ctx.font = `500 ${text.subtitleSize}px ${text.fontCss}, sans-serif`;
+                ctx.lineWidth = Math.max(2, text.subtitleSize * 0.1);
+                ctx.strokeText(text.subtitle, text.x, text.subtitleY, w * 0.9);
+                ctx.fillText(text.subtitle, text.x, text.subtitleY, w * 0.9);
+            }
+            ctx.restore();
+        }
+
+        function drawLyrics(w, h) {
+            if (state.currentLyricIndex < 0 || state.currentLyricIndex >= state.lyricsList.length) return;
+
+            const lyricObj = state.lyricsList[state.currentLyricIndex];
+            if (!lyricObj || !lyricObj.text) return;
+
+            const transformMode = document.getElementById('lyric-transform').value;
+            let textToRender = lyricObj.text;
+
+            if (transformMode === 'uppercase') textToRender = textToRender.toUpperCase();
+            else if (transformMode === 'lowercase') textToRender = textToRender.toLowerCase();
+            else if (transformMode === 'capitalize') textToRender = textToRender.replace(/\b\w/g, l => l.toUpperCase());
+
+            const fontSelect = document.getElementById('lyric-font').value;
+            const font = fontSelect.startsWith('google:') ? fontSelect.slice(7) : fontSelect === 'local' ? (document.getElementById('lyric-custom-font').value.trim() || 'Arial').replace(/["\\]/g, '').slice(0, 80) : fontSelect;
+            const fontCss = ['system-ui', 'serif', 'sans-serif', 'monospace', 'cursive', 'fantasy'].includes(font) ? font : `"${font}"`;
+            const size = parseInt(document.getElementById('lyric-size').value);
+            const color = document.getElementById('lyric-color').value;
+            const strokeColor = document.getElementById('lyric-stroke-color').value;
+            const opacity = parseFloat(document.getElementById('lyric-opacity').value) / 100;
+            const yPct = parseInt(document.getElementById('lyric-y').value) / 100;
+
+            ctx.save();
+            ctx.globalAlpha = opacity;
+            ctx.font = `bold ${size}px ${fontCss}, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            const x = w / 2;
+            const y = h * yPct;
+
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = Math.max(3, size / 8);
+            ctx.strokeText(textToRender, x, y);
+
+            ctx.fillStyle = color;
+            ctx.fillText(textToRender, x, y);
+
+            ctx.restore();
+        }
+
+        document.getElementById('btn-export')?.addEventListener('click', () => {
+            if (!state.isBgLoaded) return alert("Silakan unggah gambar atau video background terlebih dahulu.");
+            if (!state.audioElement.src) return alert("Silakan unggah file audio terlebih dahulu.");
+            startExport();
+        });
+
+        document.getElementById('btn-stop-export')?.addEventListener('click', () => {
+            stopExport();
+        });
+
+        let mediabunnyLoadPromise;
+        function loadMediabunny() {
+            if (!mediabunnyLoadPromise) mediabunnyLoadPromise = import('https://cdn.jsdelivr.net/npm/mediabunny@1.61.6/dist/bundles/mediabunny.mjs')
+                .catch(() => {
+                    mediabunnyLoadPromise = null;
+                    throw new Error('Gagal memuat encoder MP4. Periksa koneksi internet.');
+                });
+            return mediabunnyLoadPromise;
+        }
+
+        async function startExport() {
+            if (!canvas || state.isExporting) return;
+            const progressBox = document.getElementById('export-progress-box');
+            const progressStatus = document.getElementById('export-progress-status');
+            progressBox.classList.remove('hidden');
+            progressStatus.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Memuat encoder MP4...';
+            document.getElementById('export-progress-bar').style.width = '0%';
+            document.getElementById('export-progress-text').innerText = '0%';
+            document.getElementById('btn-export').classList.add('hidden');
+            document.getElementById('btn-stop-export').classList.add('hidden');
+
+            try {
+                const media = await loadMediabunny();
+                const res = document.getElementById('export-res').value.split('x');
+                const targetW = parseInt(res[0]);
+                const targetH = parseInt(res[1]);
+                const fps = parseInt(document.getElementById('export-fps').value);
+                if (!Number.isFinite(state.audioElement.duration) || state.audioElement.duration <= 0) {
+                    throw new Error('File audio belum siap diproses.');
+                }
+                if (!(await media.canEncodeVideo('avc', { width: targetW, height: targetH, frameRate: fps })) ||
+                    !(await media.canEncodeAudio('aac', { numberOfChannels: 2, sampleRate: 48000 }))) {
+                    throw new Error('Browser ini tidak mendukung encoding MP4 (H.264/AAC).');
+                }
+
+                canvas.width = targetW;
+                canvas.height = targetH;
+
+                initAudioContext();
+                if (state.audioContext.state === 'suspended') await state.audioContext.resume();
+
+                const output = new media.Output({
+                    format: new media.Mp4OutputFormat(),
+                    target: new media.BufferTarget()
+                });
+                const videoSource = new media.CanvasSource(canvas, { codec: 'avc', bitrate: 8000000 });
+                const audioTrack = state.destNode.stream.getAudioTracks()[0];
+                if (!audioTrack) throw new Error('Audio hasil proses tidak tersedia.');
+                const audioSource = new media.MediaStreamAudioTrackSource(audioTrack, { codec: 'aac', bitrate: 192000 });
+                output.addVideoTrack(videoSource);
+                output.addAudioTrack(audioSource);
+                state.exportOutput = output;
+                state.exportAudioSource = audioSource;
+                state.exportError = null;
+                state.exportFinalizing = false;
+                audioSource.errorPromise.catch(error => {
+                    state.exportError = error;
+                    setTimeout(() => stopExport(false, error), 0);
+                });
+                await output.start();
+
+                state.exportVideoSource = videoSource;
+                state.exportFramePromise = Promise.resolve();
+                state.exportFramePending = false;
+                state.exportFrameIndex = 0;
+                state.exportLastFrameTime = -1;
+                state.exportFps = fps;
+                state.exportDuration = state.audioElement.duration;
+                state.isExporting = true;
+                updateSpeakerGain();
+
+                document.getElementById('export-progress-status').innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Merender frame canvas ke MP4...';
+                state.audioElement.pause();
+                state.audioElement.currentTime = 0;
+                state.audioElement.loop = false;
+                const playback = [state.audioElement.play()];
+                if (state.bgVideo) {
+                    state.bgVideo.currentTime = 0;
+                    playback.push(state.bgVideo.play());
+                }
+                await Promise.all(playback);
+                document.getElementById('btn-stop-export').classList.remove('hidden');
+                state.isPlaying = true;
+                if (btnPlay) btnPlay.innerHTML = '<i class="fa-solid fa-pause text-sm"></i>';
+                renderLoop();
+            } catch (error) {
+                if (state.exportOutput) await state.exportOutput.cancel().catch(() => {});
+                state.isExporting = false;
+                state.isPlaying = false;
+                if (btnPlay) btnPlay.innerHTML = '<i class="fa-solid fa-play text-sm ml-0.5"></i>';
+                state.audioElement.pause();
+                state.bgVideo?.pause();
+                updateSpeakerGain();
+                state.audioElement.loop = state.isLooping;
+                state.exportOutput = null;
+                state.exportVideoSource = null;
+                state.exportAudioSource = null;
+                document.getElementById('btn-export').classList.remove('hidden');
+                document.getElementById('btn-stop-export').classList.add('hidden');
+                progressBox.classList.add('hidden');
+                alert(error.message || 'Gagal membuat video MP4.');
+            }
+        }
+
+        async function stopExport(save = true, error = null) {
+            if (!state.exportOutput || state.exportFinalizing) return;
+            state.exportFinalizing = true;
+            state.isExporting = false;
+            state.isPlaying = false;
+            state.audioElement.pause();
+            if (state.bgVideo) {
+                state.bgVideo.pause();
+                state.bgVideo.currentTime = 0;
+            }
+            updateSpeakerGain();
+            if (btnPlay) btnPlay.innerHTML = '<i class="fa-solid fa-play text-sm ml-0.5"></i>';
+            state.audioElement.loop = state.isLooping;
+            const output = state.exportOutput;
+            try {
+                await state.exportFramePromise.catch(() => {});
+                if (error || state.exportError) throw error || state.exportError;
+                if (!save || !state.exportFrameIndex) {
+                    await output.cancel();
+                    return;
+                }
+                document.getElementById('export-progress-status').innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Menyelesaikan file MP4...';
+                await output.finalize();
+                const blob = new Blob([output.target.buffer], { type: 'video/mp4' });
+                downloadVideo(blob);
+                document.getElementById('export-progress-bar').style.width = '100%';
+                document.getElementById('export-progress-text').innerText = '100%';
+                document.getElementById('export-progress-status').innerHTML = '<i class="fa-solid fa-circle-check"></i> Export MP4 selesai';
+            } catch (exportError) {
+                await output.cancel().catch(() => {});
+                document.getElementById('export-progress-status').innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Export gagal';
+                alert(exportError.message || 'Gagal menyimpan video MP4.');
+            } finally {
+                state.exportOutput = null;
+                state.exportVideoSource = null;
+                state.exportAudioSource = null;
+                state.exportFramePending = false;
+                state.exportError = null;
+                state.exportFinalizing = false;
+                document.getElementById('btn-export').classList.remove('hidden');
+                document.getElementById('btn-stop-export').classList.add('hidden');
+            }
+        }
+
+        function downloadVideo(blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+
+            let filename = document.getElementById('export-filename').value.trim() || 'MySeamlessLoop';
+            if (!filename.endsWith('.mp4')) filename += '.mp4';
+
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+
+            setTimeout(() => {
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            }, 100);
+        }
+
+        window.addEventListener('resize', () => {
+            if (!state.isPlaying && !state.isExporting) renderFrame();
+        });
+    </script>
+</body>
+</html>
