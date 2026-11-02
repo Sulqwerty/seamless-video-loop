@@ -4,6 +4,8 @@ A browser-based tool for creating audio-reactive visuals and exporting them as s
 
 **GitHub Pages:** [https://sulqwerty.github.io/seamless-video-loop/](https://sulqwerty.github.io/seamless-video-loop/)
 
+![Application screenshot](assets/screencapture.jpg)
+
 ## Features
 
 - Load an audio track and preview playback, looping, and real-time audio processing.
