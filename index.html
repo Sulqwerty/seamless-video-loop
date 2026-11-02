@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="dark">
+<html lang="en-US">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,6 +24,32 @@
                 }
             }
         }
+    </script>
+    <script>
+        window.appTheme = (() => {
+            const selector = window.matchMedia('(prefers-color-scheme: dark)');
+            let mode = 'auto';
+            try {
+                const saved = localStorage.getItem('app-theme');
+                if (['auto', 'light', 'dark'].includes(saved)) mode = saved;
+            } catch {}
+            const apply = () => {
+                const dark = mode === 'dark' || (mode === 'auto' && selector.matches);
+                document.documentElement.classList.toggle('dark', dark);
+                document.documentElement.classList.toggle('light', !dark);
+            };
+            selector.addEventListener('change', apply);
+            apply();
+            return {
+                get mode() { return mode; },
+                set(value) {
+                    if (!['auto', 'light', 'dark'].includes(value)) return;
+                    mode = value;
+                    try { localStorage.setItem('app-theme', value); } catch {}
+                    apply();
+                }
+            };
+        })();
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;800&family=Playfair+Display:ital,wght@0,600;1,400&family=Roboto+Mono:wght@500&family=Pacifico&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -76,12 +102,32 @@
             border-color: #3b82f6;
             background-color: rgba(30, 41, 59, 0.6);
         }
+
+        html.light body { color: #1f2937; }
+        html.light [class~="bg-darkBg"] { background-color: #f1f5f9; }
+        html.light [class~="bg-panelBg"] { background-color: #ffffff; }
+        html.light [class~="bg-panelHeader"] { background-color: #e2e8f0; }
+        html.light [class*="bg-slate-950"] { background-color: #e2e8f0; }
+        html.light [class*="bg-slate-900"] { background-color: #f8fafc; }
+        html.light [class*="bg-slate-800"] { background-color: #e2e8f0; }
+        html.light [class*="bg-slate-700"] { background-color: #cbd5e1; }
+        html.light [class~="text-gray-100"], html.light [class~="text-gray-200"], html.light [class~="text-gray-300"] { color: #1f2937; }
+        html.light [class~="text-gray-400"], html.light [class~="text-gray-500"] { color: #64748b; }
+        html.light [class*="border-gray-800"], html.light [class*="border-gray-700"], html.light [class*="border-slate-700"] { border-color: #cbd5e1; }
+        html.light option { background-color: #fff; color: #1f2937; }
+        html.light #btn-loop { color: #1d4ed8; }
+        html.light #audio-dsp-badge { color: #6b21a8; background-color: #f3e8ff; border-color: #d8b4fe; }
+        html.light #lyrics-sync-bar { background-color: #eef2ff; border-color: #c7d2fe; }
+        html.light #lyrics-sync-bar p, html.light #next-lyric-preview, html.light #btn-stamp-blank-lyric { color: #3730a3; }
+        html.light #export-duration-note { color: #1e3a8a; background-color: #eff6ff; border-color: #bfdbfe; }
+        html.light #export-duration-note i { color: #1d4ed8; }
+        html.light #perf-live-metrics { color: #166534; background-color: #dcfce7; }
     </style>
 </head>
 <body class="bg-darkBg text-gray-100 min-h-screen flex flex-col justify-between overflow-x-hidden select-none">
 
-    <header class="bg-panelHeader border-b border-gray-800 py-3 px-6 shadow-lg flex justify-between items-center z-10 shrink-0">
-        <div class="flex items-center gap-3">
+    <header class="bg-panelHeader border-b border-gray-800 py-3 px-3 sm:px-6 shadow-lg flex justify-between items-center z-10 shrink-0">
+        <div class="flex items-center gap-3 min-w-0">
             <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-purple-600 flex items-center justify-center text-lg shadow-lg shadow-blue-500/20">
                 <i class="fa-solid fa-infinity text-white"></i>
             </div>
@@ -90,7 +136,17 @@
                 <p class="text-[11px] text-gray-400">Seamless Video & Audio Spectrum Synthesizer</p>
             </div>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 shrink-0">
+            <label for="theme-select" class="hidden sm:block text-xs text-gray-300">Theme</label>
+            <select id="theme-select" aria-label="Theme mode" class="w-20 sm:w-auto bg-slate-900 text-gray-200 border border-gray-700 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-blue-500">
+                <option value="auto">Auto</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+            </select>
+            <label for="language-select" class="hidden sm:block text-xs text-gray-300">Language</label>
+            <select id="language-select" aria-label="Language" class="w-28 sm:w-auto max-w-[130px] truncate bg-slate-900 text-gray-200 border border-gray-700 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-blue-500">
+                <option value="en-US">English (United States)</option>
+            </select>
             <span class="text-xs px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span> Ready
             </span>
@@ -243,7 +299,7 @@
                         <h3 class="text-xs font-bold text-gray-200 uppercase tracking-wider flex items-center gap-2">
                             <i class="fa-solid fa-sliders text-purple-400"></i> Studio Audio Mastering
                         </h3>
-                        <span class="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">Realtime DSP</span>
+                        <span id="audio-dsp-badge" class="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">Realtime DSP</span>
                     </div>
 
                     <!-- Genre & Mastering Presets -->
@@ -850,7 +906,7 @@
                     </div>
 
                     <!-- Sync Controls Bar -->
-                    <div class="bg-indigo-950/40 border border-indigo-500/30 p-3 rounded-xl space-y-2">
+                    <div id="lyrics-sync-bar" class="bg-indigo-950/40 border border-indigo-500/30 p-3 rounded-xl space-y-2">
                         <div class="flex items-center justify-between gap-2">
                             <div class="flex-1 min-w-0">
                                 <p class="text-[11px] text-indigo-300 font-medium truncate">Set Baris Berikutnya:</p>
@@ -941,7 +997,7 @@
                 </div>
 
                 <div id="tab-export" class="tab-content hidden space-y-4">
-                    <div class="bg-blue-950/40 border border-blue-500/30 p-3.5 rounded-xl text-xs text-blue-200">
+                    <div id="export-duration-note" class="bg-blue-950/40 border border-blue-500/30 p-3.5 rounded-xl text-xs text-blue-200">
                         <i class="fa-solid fa-circle-info text-blue-400 mr-1.5"></i> 
                         Video akan di-render secara otomatis mengikuti durasi audio.
                     </div>
@@ -965,7 +1021,7 @@
                             <h4 class="text-xs font-bold text-gray-200 uppercase tracking-wider flex items-center gap-1.5">
                                 <i class="fa-solid fa-microchip text-emerald-400"></i> Performance & Hardware Monitor
                             </h4>
-                            <span class="text-[9px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono">LIVE METRICS</span>
+                            <span id="perf-live-metrics" class="text-[9px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono">LIVE METRICS</span>
                         </div>
                         <div class="grid grid-cols-2 gap-2 text-xs">
                             <div class="bg-slate-950/80 p-2 rounded border border-gray-800 flex flex-col justify-between">
@@ -1057,6 +1113,130 @@
     </main>
 
     <script>
+        window.appI18n = (() => {
+            let locale = 'en-US';
+            let messages = {};
+            const selector = document.getElementById('language-select');
+            const normalize = value => value.trim().replace(/\s+/g, ' ');
+            const translateText = node => {
+                const value = node.nodeValue;
+                if (!value.trim()) return;
+                if (node.parentElement?.closest('script, style, textarea, [data-i18n-ignore]')) return;
+                const source = node.__i18nLastRendered === value ? node.__i18nSource : value;
+                if (source === undefined) return;
+                node.__i18nSource = source;
+                const leading = source.match(/^\s*/)?.[0] || '';
+                const trailing = source.match(/\s*$/)?.[0] || '';
+                const output = messages.translations?.[normalize(source)] ?? source.trim();
+                const rendered = `${leading}${output}${trailing}`;
+                if (value !== rendered) node.nodeValue = rendered;
+                node.__i18nLastRendered = rendered;
+            };
+            const attributeState = new WeakMap();
+            const translateAttribute = (element, name) => {
+                const value = element.getAttribute(name);
+                const state = attributeState.get(element) || {};
+                const source = state[name]?.rendered === value ? state[name].source : value;
+                const output = messages.attributes?.[name]?.[normalize(source)] || source;
+                state[name] = { source, rendered: output };
+                attributeState.set(element, state);
+                if (output !== value) element.setAttribute(name, output);
+            };
+            const translateTree = root => {
+                if (root.nodeType === Node.TEXT_NODE) return translateText(root);
+                if (root.nodeType !== Node.ELEMENT_NODE && root.nodeType !== Node.DOCUMENT_NODE) return;
+                if (root.nodeType === Node.ELEMENT_NODE && root.matches('script, style, [data-i18n-ignore]')) return;
+                const attributeSelector = '[placeholder], [title], [aria-label]';
+                const attributeElements = root.nodeType === Node.ELEMENT_NODE ? [root, ...root.querySelectorAll(attributeSelector)] : [...root.querySelectorAll(attributeSelector)];
+                attributeElements.forEach(element => {
+                    if (!element.closest('script, style, [data-i18n-ignore]')) ['placeholder', 'title', 'aria-label'].forEach(name => {
+                        if (element.hasAttribute(name)) translateAttribute(element, name);
+                    });
+                });
+                const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: node => node.parentElement?.closest('script, style, textarea, [data-i18n-ignore]') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+                while (walker.nextNode()) translateText(walker.currentNode);
+            };
+            const observer = new MutationObserver(records => records.forEach(record => {
+                if (record.type === 'characterData') translateText(record.target);
+                else if (record.type === 'attributes') translateAttribute(record.target, record.attributeName);
+                else record.addedNodes.forEach(translateTree);
+            }));
+            const loadLocale = async code => {
+                if (!/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/.test(code)) throw new Error('Invalid language code.');
+                const response = await fetch(`lang/${encodeURIComponent(code)}.json`);
+                if (!response.ok) throw new Error(`Could not load language file: ${code}`);
+                const catalog = await response.json();
+                if (catalog.locale !== code || !catalog.translations || typeof catalog.translations !== 'object') throw new Error(`Invalid language file: ${code}`);
+                messages = catalog;
+                locale = code;
+                document.documentElement.lang = code;
+                translateTree(document.documentElement);
+                selector.value = code;
+            };
+            const ready = (async () => {
+                try {
+                    const textFontFamily = document.getElementById('text-overlay-font-family');
+                    const lyricFont = document.getElementById('lyric-font');
+                    [...textFontFamily.children].forEach(option => lyricFont.append(option.cloneNode(true)));
+                    lyricFont.value = 'google:Inter';
+                    const response = await fetch('lang/manifest.json');
+                    let supportedLocales = ['en-US'];
+                    if (response.ok) {
+                        const manifest = await response.json();
+                        const locales = manifest.locales.filter(item => /^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/.test(item.code));
+                        supportedLocales = locales.map(item => item.code);
+                        selector.replaceChildren(...locales.map(item => {
+                            const option = document.createElement('option');
+                            option.value = item.code;
+                            option.textContent = item.name;
+                            return option;
+                        }));
+                    }
+                    if (!supportedLocales.includes('en-US')) {
+                        supportedLocales.push('en-US');
+                        selector.add(new Option('English (United States)', 'en-US'));
+                    }
+                    let initialLocale = 'en-US';
+                    try {
+                        const savedLocale = localStorage.getItem('app-locale');
+                        if (supportedLocales.includes(savedLocale)) initialLocale = savedLocale;
+                    } catch {}
+                    await loadLocale(initialLocale);
+                } catch (error) {
+                    console.error('Language catalog could not be loaded:', error);
+                }
+                observer.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['placeholder', 'title', 'aria-label'] });
+                selector.addEventListener('change', async () => {
+                    const requested = selector.value;
+                    try {
+                        await loadLocale(requested);
+                        try { localStorage.setItem('app-locale', requested); } catch {}
+                    }
+                    catch (error) { console.error(error); selector.value = locale; }
+                });
+            })();
+            const t = key => {
+                if (messages.translations?.[key]) return messages.translations[key];
+                for (const [pattern, template] of Object.entries(messages.patterns || {})) {
+                    const match = key.match(new RegExp(pattern));
+                    if (match) return template.replace(/\$(\d)/g, (_, index) => match[index] || '');
+                }
+                return key;
+            };
+            return { ready, t };
+        })();
+    </script>
+
+    <script>
+        const themeSelector = document.getElementById('theme-select');
+        themeSelector.value = window.appTheme.mode;
+        themeSelector.addEventListener('change', () => window.appTheme.set(themeSelector.value));
+    </script>
+
+    <script>
+        (async () => {
+        await window.appI18n.ready;
+        const t = key => window.appI18n.t(key);
         const canvas = document.getElementById('main-canvas');
         const ctx = canvas ? canvas.getContext('2d') : null;
         const statusOverlay = document.getElementById('status-overlay');
@@ -1299,7 +1479,7 @@
                 const file = [...e.dataTransfer.files].find(file => input.accept.split(',').some(type =>
                     type.endsWith('/*') ? file.type.startsWith(type.slice(0, -1)) : file.type === type
                 ) || (input.id === 'input-bg' && /\.(mp4|m4v|mov|webm|ogv)$/i.test(file.name)));
-                if (!file) return alert('Format file tidak sesuai.');
+                if (!file) return alert(t('Format file tidak sesuai.'));
                 const files = new DataTransfer();
                 files.items.add(file);
                 input.files = files.files;
@@ -1349,7 +1529,7 @@
                         checkStatusOverlay();
                         renderFrame();
                     }, { once: true });
-                    video.addEventListener('error', () => alert('Video background tidak dapat dibuka oleh browser.'), { once: true });
+                    video.addEventListener('error', () => alert(t('Video background tidak dapat dibuka oleh browser.')), { once: true });
                     video.src = state.bgVideoUrl;
                     return;
                 }
@@ -1457,7 +1637,7 @@
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = () => resolve(reader.result);
-                reader.onerror = () => reject(reader.error || new Error('Background tidak dapat dibaca.'));
+                reader.onerror = () => reject(reader.error || new Error(t('Background tidak dapat dibaca.')));
                 reader.readAsDataURL(blob);
             });
         }
@@ -1514,7 +1694,7 @@
                 link.remove();
                 setTimeout(() => URL.revokeObjectURL(url), 1000);
             } catch (error) {
-                alert(error.message || 'Gagal menyimpan konfigurasi.');
+                alert(t(error.message || 'Gagal menyimpan konfigurasi.'));
             }
         });
 
@@ -1596,7 +1776,7 @@
                 }
                 renderFrame();
             } catch (error) {
-                alert(error.message || 'Gagal memuat konfigurasi.');
+                alert(t(error.message || 'Gagal memuat konfigurasi.'));
             } finally {
                 e.target.value = '';
             }
@@ -1999,8 +2179,6 @@
         });
         const textFontFamily = document.getElementById('text-overlay-font-family');
         const lyricFont = document.getElementById('lyric-font');
-        [...textFontFamily.children].forEach(option => lyricFont.append(option.cloneNode(true)));
-        lyricFont.value = 'google:Inter';
         const googleFontLoads = new Map();
         function loadGoogleFont(family) {
             if (!googleFontLoads.has(family)) {
@@ -2049,7 +2227,10 @@
             if (!lyricsListContainer) return;
             if (state.lyricsList.length === 0) {
                 lyricsListContainer.innerHTML = '<p class="text-[11px] text-gray-500 text-center py-2">Belum ada lirik disinkronisasi.</p>';
-                if (nextLyricPreview) nextLyricPreview.innerText = '-- Tidak ada lirik --';
+                if (nextLyricPreview) {
+                    nextLyricPreview.removeAttribute('data-i18n-ignore');
+                    nextLyricPreview.innerText = '-- Tidak ada lirik --';
+                }
                 return;
             }
 
@@ -2061,14 +2242,21 @@
                 const timeStr = isSynced ? formatTime(item.time) : '--:--';
                 if (!isSynced && !nextFound) {
                     nextFound = true;
-                    if (nextLyricPreview) nextLyricPreview.innerText = item.text || '(Jeda Kosong)';
+                    if (nextLyricPreview) {
+                        if (item.text) nextLyricPreview.dataset.i18nIgnore = 'true';
+                        else nextLyricPreview.removeAttribute('data-i18n-ignore');
+                        nextLyricPreview.innerText = item.text || '(Jeda Kosong)';
+                    }
                 }
 
+                const lyricText = item.text
+                    ? `<span data-i18n-ignore="true">${item.text}</span>`
+                    : '<i class="text-gray-500">(Jeda Kosong)</i>';
                 html += `
                     <div class="flex items-center justify-between py-1 px-2 text-xs border-b border-gray-800 ${state.currentLyricIndex === idx ? 'bg-indigo-900/40 text-indigo-200 font-semibold' : 'text-gray-300'}">
                         <div class="flex items-center gap-2 truncate flex-1 min-w-0 pr-2">
                             <span class="font-mono text-[10px] text-gray-500 w-4">${idx + 1}.</span>
-                            <span class="truncate">${item.text || '<i class="text-gray-500">(Jeda Kosong)</i>'}</span>
+                            <span class="truncate">${lyricText}</span>
                         </div>
                         <div class="flex items-center gap-2 shrink-0 font-mono text-[11px]">
                             <span class="${isSynced ? 'text-indigo-400' : 'text-gray-600'}">${timeStr}</span>
@@ -2080,7 +2268,10 @@
                 `;
             });
 
-            if (!nextFound && nextLyricPreview) nextLyricPreview.innerText = '-- Semua Lirik Ter-Sync --';
+            if (!nextFound && nextLyricPreview) {
+                nextLyricPreview.removeAttribute('data-i18n-ignore');
+                nextLyricPreview.innerText = '-- Semua Lirik Ter-Sync --';
+            }
             lyricsListContainer.innerHTML = html;
         }
 
@@ -2801,8 +2992,8 @@
         }
 
         document.getElementById('btn-export')?.addEventListener('click', () => {
-            if (!state.isBgLoaded) return alert("Silakan unggah gambar atau video background terlebih dahulu.");
-            if (!state.audioElement.src) return alert("Silakan unggah file audio terlebih dahulu.");
+            if (!state.isBgLoaded) return alert(t('Silakan unggah gambar atau video background terlebih dahulu.'));
+            if (!state.audioElement.src) return alert(t('Silakan unggah file audio terlebih dahulu.'));
             startExport();
         });
 
@@ -2910,7 +3101,7 @@
                 document.getElementById('btn-export').classList.remove('hidden');
                 document.getElementById('btn-stop-export').classList.add('hidden');
                 progressBox.classList.add('hidden');
-                alert(error.message || 'Gagal membuat video MP4.');
+                alert(t(error.message || 'Gagal membuat video MP4.'));
             }
         }
 
@@ -2945,7 +3136,7 @@
             } catch (exportError) {
                 await output.cancel().catch(() => {});
                 document.getElementById('export-progress-status').innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Export gagal';
-                alert(exportError.message || 'Gagal menyimpan video MP4.');
+                alert(t(exportError.message || 'Gagal menyimpan video MP4.'));
             } finally {
                 state.exportOutput = null;
                 state.exportVideoSource = null;
@@ -2980,6 +3171,7 @@
         window.addEventListener('resize', () => {
             if (!state.isPlaying && !state.isExporting) renderFrame();
         });
+        })();
     </script>
 </body>
 </html>

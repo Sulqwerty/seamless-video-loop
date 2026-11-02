@@ -1,0 +1,12 @@
+{
+  "locales": [
+    {
+      "code": "en-US",
+      "name": "English (United States)"
+    },
+    {
+      "code": "id-ID",
+      "name": "Bahasa Indonesia"
+    }
+  ]
+}
