@@ -1271,6 +1271,7 @@
             speakerGainNode: null,
             
             analyser: null,
+            lastAudioData: null,
             destNode: null,
             
             isPlaying: false,
@@ -1578,6 +1579,8 @@
                 if (state.audioUrl) URL.revokeObjectURL(state.audioUrl);
                 state.audioUrl = URL.createObjectURL(file);
                 state.audioElement.src = state.audioUrl;
+                state.lastAudioData = null;
+                state.currentSpecPulseScale = 0;
                 document.getElementById('audio-filename').innerText = file.name;
                 state.audioElement.onloadedmetadata = () => {
                     document.getElementById('time-total').innerText = formatTime(state.audioElement.duration);
@@ -2314,6 +2317,13 @@
         };
         lyricFont.addEventListener('change', updateLyricFont);
         document.getElementById('lyric-custom-font')?.addEventListener('input', () => { if (!state.isPlaying && !state.isExporting) renderFrame(); });
+        document.querySelectorAll('#lyric-color, #lyric-stroke-color').forEach(el => {
+            el.addEventListener('input', () => { if (!state.isPlaying && !state.isExporting) renderFrame(); });
+            el.addEventListener('change', () => { if (!state.isPlaying && !state.isExporting) renderFrame(); });
+        });
+        document.getElementById('lyric-transform')?.addEventListener('change', () => {
+            if (!state.isPlaying && !state.isExporting) renderFrame();
+        });
         updateLyricFont();
 
         function renderLoop() {
@@ -2431,8 +2441,13 @@
 
             if (state.analyser) {
                 const bufferLength = state.analyser.frequencyBinCount;
-                audioData = new Uint8Array(bufferLength);
-                state.analyser.getByteFrequencyData(audioData);
+                if (state.isPlaying || state.isExporting || !state.lastAudioData) {
+                    audioData = new Uint8Array(bufferLength);
+                    state.analyser.getByteFrequencyData(audioData);
+                    state.lastAudioData = audioData;
+                } else {
+                    audioData = state.lastAudioData;
+                }
 
                 let sum = 0;
                 for (let i = 0; i < bufferLength; i++) sum += audioData[i];
@@ -2526,9 +2541,11 @@
             const pulseEnabled = document.getElementById('toggle-spec-pulse').checked;
             const pulseSensitivity = parseFloat(document.getElementById('spec-pulse-sens').value);
             const pulseDepth = parseInt(document.getElementById('spec-pulse-zoom').value) / 100;
-            const targetSpecPulse = pulseEnabled ? pulseLevel * pulseDepth * pulseSensitivity : 0;
-            const pulseSmoothing = targetSpecPulse > state.currentSpecPulseScale ? 0.45 : 0.12;
-            state.currentSpecPulseScale += (targetSpecPulse - state.currentSpecPulseScale) * pulseSmoothing;
+            if (state.isPlaying || state.isExporting) {
+                const targetSpecPulse = pulseEnabled ? pulseLevel * pulseDepth * pulseSensitivity : 0;
+                const pulseSmoothing = targetSpecPulse > state.currentSpecPulseScale ? 0.45 : 0.12;
+                state.currentSpecPulseScale += (targetSpecPulse - state.currentSpecPulseScale) * pulseSmoothing;
+            }
             scale += state.currentSpecPulseScale;
             const channel1 = [1, 3, 5].map(i => parseInt(color1.slice(i, i + 2), 16));
             const channel2 = [1, 3, 5].map(i => parseInt(color2.slice(i, i + 2), 16));
