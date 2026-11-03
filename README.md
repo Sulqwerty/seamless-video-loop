@@ -8,10 +8,11 @@ A browser-based tool for creating audio-reactive visuals and exporting them as s
 
 ## Features
 
-- Load an audio track and preview playback, looping, and real-time audio processing.
+- Load audio tracks, including MP4 files (the audio track is used; video is ignored), and preview playback, looping, and real-time audio processing.
 - Customize audio mastering presets and playback controls.
 - Create audio spectrum visualizations with adjustable frequency range, band count, scale, position, sensitivity, spacing, gradient, glow, and pulse effects. Includes multiple spectrum styles and wireframe wave/mesh styles.
 - Add image or video backgrounds, including MP4 and MOV, and loop background video to match the audio.
+- Adjust background exposure, contrast, temperature, tint, saturation, and vignette.
 - Add image overlays, a draggable logo/watermark, and draggable title or subtitle text. Adjust scale, position, opacity, color, stroke, alignment, and font. Fonts include Google Fonts and fonts installed on your computer.
 - Add lyrics, synchronize lines to playback, and style their font and appearance.
 - Export the canvas and configured audio to MP4 with render progress, when the browser supports the required encoders.
